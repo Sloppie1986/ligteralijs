@@ -458,6 +458,79 @@ def ice_model(fc, prev=None):
             "level": level(now["cm"]) if now else 0, "peak_level": level(peak["cm"]) if peak else 0}
 
 
+DAGDELEN = [(0, "nacht"), (6, "ochtend"), (12, "middag"), (18, "avond")]
+
+
+COLD_WORDS = ["vorst", "vries", "bevr", "ijs", "schaats", "koud", "kou ", "kou,", "kou.", "winter", "sneeuw", "oostenwind",
+              "oosten", "noordoost", "ijzig", "elfsteden", "toertocht", "ijsdag", "strenge", "scandinavisch", "siberi",
+              "blocking", "hoog boven scandinavi", "graaddag", "onder nul", "min ", "-5", "-6", "-7", "-8", "-9", "-10"]
+MILD_WORDS = ["dooi", "zacht", "mild", "westenwind", "zuidwest", "zuidwesten", "opwarming", "warmer", "regen", "storm",
+              "atlantisch", "boven nul", "voorjaar", "doorbraak", "einde vorst", "geen ijs", "niet koud", "valt tegen",
+              "teleurstell", "jammer", "helaas"]
+
+
+def message_mood(data):
+    """Grove 'stemming' in de berichten van de laatste 6 uur: hoeveel berichten gaan over kou/ijs en hoeveel over zacht weer.
+    Telt woorden; geen echte taalanalyse."""
+    since = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=6)).isoformat()[:19]
+    texts = []
+    for p in data.get("posts") or []:
+        if (p.get("time") or "")[:19] >= since:
+            texts.append(" ".join(str(p.get(k) or "") for k in ("title", "summary", "text")))
+    for p in ((data.get("forum") or {}).get("posts") or []) + (data.get("comments") or []):
+        if (p.get("time") or "")[:19] >= since:
+            texts.append(str(p.get("text") or p.get("summary") or ""))
+    cold = mild = 0
+    for t in texts:
+        t = " " + t.lower() + " "
+        c = sum(t.count(w) for w in COLD_WORDS)
+        m = sum(t.count(w) for w in MILD_WORDS)
+        if c > m: cold += 1
+        elif m > c: mild += 1
+    n = len(texts)
+    return {"n": n, "cold": cold, "mild": mild, "index": round((cold - mild) / n, 2) if n else 0}
+
+
+def ice_trend(ice, prev, mood=None):
+    """Per dagdeel één momentopname van de ijsverwachting, om te zien of het de goede kant op gaat.
+    Binnen hetzelfde dagdeel wordt de momentopname steeds overschreven door de nieuwste run."""
+    now = dt.datetime.now(TZ)
+    part = [n for h, n in DAGDELEN if now.hour >= h][-1]
+    key = f"{now.date().isoformat()} {part}"
+    fc = [r for r in ice["rows"] if r["forecast"]]
+    snap = {
+        "key": key, "part": part, "date": now.date().isoformat(), "at": now.isoformat(timespec="minutes"),
+        "peak_cm": ice["peak"]["cm"] if ice.get("peak") else 0,
+        "peak_date": ice["peak"]["date"] if ice.get("peak") else None,
+        # vorstsom: opgetelde graden onder nul (daggemiddelde) over alle voorspelde dagen
+        "frost": round(sum(-r["tmean"] for r in fc if r["tmean"] is not None and r["tmean"] < 0), 1),
+        "coldest": min((r["tmin"] for r in fc if r["tmin"] is not None), default=None),
+        "frost_nights": sum(1 for r in fc if r["tmin"] is not None and r["tmin"] < 0),
+        "days": len(fc),
+        "mood": mood or {"n": 0, "cold": 0, "mild": 0, "index": 0},
+    }
+    hist = [h for h in ((prev or {}).get("ice_trend") or []) if h.get("key") != key]
+    hist.append(snap)
+    hist = sorted(hist, key=lambda h: h["at"])[-12:]   # laatste 3 dagen
+    for i, h in enumerate(hist):
+        if i == 0:
+            h["dir"] = None
+            continue
+        p = hist[i - 1]
+        # score: ijsdikte weegt zwaarst, dan vorstsom, dan koudste nacht
+        d = (h["peak_cm"] - p["peak_cm"]) * 2 + (h["frost"] - p["frost"]) \
+            + ((p["coldest"] - h["coldest"]) * 0.5 if h["coldest"] is not None and p["coldest"] is not None else 0)
+        h["score"] = round(d, 1)
+        h["dir"] = "beter" if d >= 0.5 else "slechter" if d <= -0.5 else "gelijk"
+        pm, hm = p.get("mood") or {}, h.get("mood") or {}
+        if hm.get("n", 0) >= 3 and pm.get("n", 0) >= 3:
+            dm = hm["index"] - pm["index"]
+            h["mood_dir"] = "beter" if dm >= 0.1 else "slechter" if dm <= -0.1 else "gelijk"
+        else:
+            h["mood_dir"] = None
+    return hist
+
+
 # ---------------------------------------------------------------- X-accounts
 X_ACCOUNTS = [
     ("WeermanMichael", "eigen keuze"), ("Weerprimeur", "eigen keuze"), ("PvForecast", "eigen keuze"),
@@ -646,6 +719,8 @@ def main():
     add_images(data["posts"], (prev or {}).get("posts"))
     data["om_blocked"] = OM_BLOCK.get("day")
     data["errors"] = errors
+    if data.get("ice"):
+        data["ice_trend"] = ice_trend(data["ice"], prev, message_mood(data))
     data["alerts"] = alerts(data, prev)
     if prev and prev.get("summary"):
         data["summary"] = prev["summary"]   # wordt door de geplande taak vernieuwd

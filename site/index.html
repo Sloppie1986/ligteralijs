@@ -76,6 +76,14 @@ button{font:600 .85rem var(--f-body);color:var(--accent);background:var(--accent
 .days td.lbl{text-align:left;color:var(--muted);white-space:nowrap}
 .days .today{background:var(--accent-soft)}
 .neg{color:var(--frost);font-weight:600} .pos{color:var(--thaw)}
+.trend-h{font:600 .8rem var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px}
+.trend{display:flex;flex-direction:column;gap:2px;font-size:.85rem}
+.trow{display:grid;grid-template-columns:1.4em 7.5em 1fr;gap:6px;align-items:baseline;padding:3px 6px;border-radius:4px}
+.trow:nth-child(-n+2){background:var(--accent-soft)} .trow:first-child .tpart{font-weight:600;color:var(--ink,inherit)}
+.trow .mono{font-size:.8rem;font-weight:400}
+.trow.sub{font-size:.8rem;margin-bottom:6px}
+.tdir{text-align:center;font-weight:700} .tpart{color:var(--muted)}
+.trow.beter .tdir{color:var(--frost)} .trow.slechter .tdir{color:var(--thaw)} .trow.gelijk .tdir,.trow.start .tdir{color:var(--muted)}
 .bar{height:6px;border-radius:3px;background:var(--frost);margin:0 auto}
 .lakes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .lake{background:var(--sunk);border-radius:8px;padding:8px 10px;font-size:.9rem}
@@ -188,6 +196,10 @@ footer ul{padding-left:1.1em}
           <div><div class="ice-label" id="icelabel">–</div><div class="muted" id="icesub"></div></div>
         </div>
         <div class="days"><table id="days"></table></div>
+        <h3 class="trend-h">Gaat het de goede kant op?</h3>
+        <div class="muted" style="font-size:.8rem;margin-bottom:4px">Per dagdeel: bovenste regel = weermodellen, onderste = stemming in X, forum en nieuws</div>
+        <div class="trend" id="trend"></div>
+        <p class="note">Trend: per dagdeel de verwachting van dat moment, vergeleken met het dagdeel ervoor. Blauw ▲ = kouder/meer ijs verwacht, rood ▼ = zachter. De stemming telt woorden als vorst, ijs, oostenwind tegenover dooi, zacht, zuidwest; dat is een grove graadmeter, geen echte taalanalyse. Vorstsom = opgetelde graden onder nul (daggemiddelde) over de komende dagen.</p>
         <p class="note">IJsdikte geschat uit opgetelde vorstgraden (daggemiddelde onder 0 °C) voor stilstaand, ondiep water zonder sneeuw. Ga nooit het ijs op zonder bericht van de ijsclub of ijsmeester.</p>
       </section>
 
@@ -342,6 +354,26 @@ footer ul{padding-left:1.1em}
         rCm.append(td);
       }
       T.append(head, rMin, rMax, rCm);
+    }
+    // trend per dagdeel
+    const TR = $("trend"); TR.replaceChildren();
+    const hist = (d.ice_trend || []).slice().reverse();
+    if (!hist.length) TR.append(el("div", {cls: "muted", text: "Nog geen geschiedenis; vanaf nu wordt elk dagdeel bewaard."}));
+    const sym = {beter: "▲", slechter: "▼", gelijk: "▬"};
+    for (const h of hist) {
+      const day = new Date(h.date).toLocaleDateString("nl-NL", {weekday: "short"});
+      const dir = h.dir || "start";
+      const peak = h.peak_cm ? `piek ~${h.peak_cm.toLocaleString("nl-NL")} cm` : "geen ijs";
+      TR.append(el("div", {cls: "trow " + dir}, [
+        el("span", {cls: "tdir", text: sym[dir] || "•", title: h.dir ? `${h.dir} dan het dagdeel ervoor` : "eerste meting"}),
+        el("span", {cls: "tpart", text: `${day} ${h.part}`}),
+        el("span", {cls: "mono", text: `${peak} · vorstsom ${h.frost.toLocaleString("nl-NL")} · koudste ${fmtT(h.coldest)} · ${h.frost_nights} vorstnacht${h.frost_nights === 1 ? "" : "en"}`})]));
+      const m = h.mood || {n: 0};
+      const md = h.mood_dir || "start";
+      TR.append(el("div", {cls: "trow sub " + md}, [
+        el("span", {cls: "tdir", text: sym[md] || "•", title: h.mood_dir ? `stemming ${h.mood_dir} dan het dagdeel ervoor` : "te weinig berichten om te vergelijken"}),
+        el("span", {cls: "tpart", text: "berichten"}),
+        el("span", {text: m.n ? `${m.n} in 6 uur: ${m.cold} over kou/ijs, ${m.mild} over zacht weer` : "geen nieuwe berichten"})]));
     }
 
     // De Arend
