@@ -517,10 +517,54 @@ def x_posts(prev):
     return keep, state
 
 
+# ---------------------------------------------------------------- drukte-alarm
+BUZZ_FORUM_PER_HOUR = 30     # reacties per uur in de kaartendraad
+BUZZ_FORUM_FACTOR = 3        # of: zoveel keer drukker dan normaal (gemiddelde van 24 uur)
+BUZZ_X_POSTS_2H = 8          # X-posts in 2 uur van de gevolgde accounts...
+BUZZ_X_ACCOUNTS = 3          # ...van minstens zoveel verschillende accounts
+BUZZ_PAUSE_H = 3             # niet vaker dan eens per 3 uur per soort
+
+
+def buzz(cur, prev):
+    """Meld als het 'los gaat': veel forumreacties of veel X-posts in korte tijd."""
+    now = dt.datetime.now(dt.timezone.utc)
+    hist = [h for h in (prev.get("buzz_hist") or []) if h["t"] >= (now - dt.timedelta(hours=26)).isoformat()]
+    f = cur.get("forum") or {}
+    hist.append({"t": now.isoformat(), "url": f.get("url"), "total": f.get("total")})
+    cur["buzz_hist"] = hist
+    last = dict(prev.get("buzz_last") or {})
+    cur["buzz_last"] = last
+    msgs = []
+    def may(kind):
+        t = last.get(kind)
+        return not t or t < (now - dt.timedelta(hours=BUZZ_PAUSE_H)).isoformat()
+    # forum: reacties per uur in dezelfde draad
+    same = [h for h in hist if h["url"] == f.get("url") and h["total"] is not None]
+    hour_ago = [h for h in same if h["t"] <= (now - dt.timedelta(minutes=55)).isoformat()]
+    if f.get("total") is not None and hour_ago:
+        rate = f["total"] - hour_ago[-1]["total"]
+        span_h = max(1.0, (now - dt.datetime.fromisoformat(same[0]["t"])).total_seconds() / 3600)
+        avg = (f["total"] - same[0]["total"]) / span_h
+        cur["forum_rate"] = rate
+        if rate >= BUZZ_FORUM_PER_HOUR or (span_h >= 6 and avg > 0 and rate >= BUZZ_FORUM_FACTOR * avg and rate >= 12):
+            if may("forum"):
+                msgs.append(f"Het gaat los op het Noodweer-forum: {rate} reacties in het afgelopen uur.")
+                last["forum"] = now.isoformat()
+    # X: veel posts in 2 uur van verschillende accounts
+    two_h = (now - dt.timedelta(hours=2)).isoformat()[:19]
+    xs = [p for p in cur.get("posts") or [] if p.get("source", "").startswith("@") and (p.get("time") or "") >= two_h]
+    accts = {p["source"] for p in xs}
+    if len(xs) >= BUZZ_X_POSTS_2H and len(accts) >= BUZZ_X_ACCOUNTS and may("x"):
+        msgs.append(f"Drukte op X: {len(xs)} posts in 2 uur van {len(accts)} weermannen ({', '.join(sorted(accts)[:5])}).")
+        last["x"] = now.isoformat()
+    return msgs
+
+
 # ---------------------------------------------------------------- alerts
 def alerts(cur, prev):
     out = []
     if not prev:
+        cur["buzz_hist"] = []
         return out
     pw = {(w["event"], w["onset"]) for w in (prev.get("warnings") or [])}
     for w in cur.get("warnings") or []:
@@ -545,6 +589,7 @@ def alerts(cur, prev):
     cn = (cur.get("dearend") or {}).get("news")
     if cn and pn and cn != pn:
         out.append(f"Nieuw schaatsnieuws Wijdemeren: {cn[:160]}")
+    out += buzz(cur, prev)
     pf, cf = prev.get("forum") or {}, cur.get("forum") or {}
     if cf.get("url") and pf.get("url") and cf["url"] != pf["url"]:
         out.append(f"Nieuwe kaartendraad op Noodweer: {cf.get('title')}")
