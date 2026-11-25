@@ -2,7 +2,7 @@ name: IJsklok bijwerken
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # elke 15 minuten (GitHub kan een paar minuten uitlopen)
+    - cron: "7,22,37,52 * * * *"   # elk kwartier, net naast de drukke hele en halve uren
   workflow_dispatch:
   push:
     branches: [main]
