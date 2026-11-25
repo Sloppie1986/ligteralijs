@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 10
     env:
       NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+      ONESIGNAL_KEY: ${{ secrets.ONESIGNAL_KEY }}
     steps:
       - uses: actions/checkout@v5
 
@@ -40,6 +41,24 @@ jobs:
         env:
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
         run: python3 monitor.py site/data.json prev.json | tee result.json
+
+      - name: Pushmelding naar alle abonnees (OneSignal)
+        if: ${{ env.ONESIGNAL_KEY != '' }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          alerts = json.load(open("site/data.json")).get("alerts") or []
+          app_id = json.load(open("site/config.json")).get("onesignal_app_id")
+          if alerts and app_id:
+              url = f"https://{os.environ['GITHUB_REPOSITORY_OWNER'].lower()}.github.io/{os.environ['GITHUB_REPOSITORY'].split('/')[1]}/"
+              body = {"app_id": app_id, "target_channel": "push", "included_segments": ["Total Subscriptions"],
+                      "headings": {"en": "Ligt er al ijs?", "nl": "Ligt er al ijs?"},
+                      "contents": {"en": "\n".join(alerts)[:900], "nl": "\n".join(alerts)[:900]},
+                      "url": url, "ttl": 10800}
+              req = urllib.request.Request("https://api.onesignal.com/notifications?c=push", data=json.dumps(body).encode(),
+                                           headers={"Content-Type": "application/json", "Authorization": "Key " + os.environ["ONESIGNAL_KEY"]})
+              print(urllib.request.urlopen(req, timeout=20).read()[:200])
+          PY
 
       - name: Melding sturen bij relevante verandering
         if: ${{ env.NTFY_TOPIC != '' }}
