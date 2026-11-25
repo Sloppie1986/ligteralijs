@@ -1,0 +1,40 @@
+name: Klok (elk kwartier verversen)
+
+# GitHub start de geplande runs (schedule) van deze repo niet. Deze klok draait daarom zelf:
+# hij start elk kwartier de update-workflow en start zichzelf na bijna 6 uur opnieuw.
+# Publieke repo, dus de Actions-minuten zijn gratis. Uitzetten: Actions > Klok > Disable workflow.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/klok.yml"]
+  schedule:
+    - cron: "41 */6 * * *"   # vangnet, voor het geval GitHub de schema's later wel gaat uitvoeren
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: klok
+  cancel-in-progress: true
+
+jobs:
+  tik:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Elk kwartier de update starten
+        run: |
+          end=$(( $(date +%s) + 340*60 ))
+          while [ "$(date +%s)" -lt "$end" ]; do
+            gh workflow run update.yml --ref main || echo "starten mislukt, volgende keer opnieuw"
+            sleep 900
+          done
+      - name: Klok opnieuw starten
+        if: always()
+        run: gh workflow run klok.yml --ref main
