@@ -11,7 +11,7 @@ import json
 import os
 import sys
 
-MODEL = os.environ.get("ASSESS_MODEL", "claude-opus-5-5")
+MODEL = os.environ.get("ASSESS_MODEL", "claude-haiku-5-5")
 MAX_IMAGES = 10
 HOURS = 12
 
@@ -113,9 +113,8 @@ def main(path):
 
     client = anthropic.Anthropic()
     try:
-        resp = client.beta.messages.create(
+        resp = client.messages.create(
             model=MODEL, max_tokens=16000, system=SYSTEM,
-            betas=["server-side-fallback-2026-07-01"], fallbacks="default",
             output_config={"effort": "medium", "format": {"type": "json_schema", "schema": SCHEMA}},
             messages=[{"role": "user", "content": content}],
         )
