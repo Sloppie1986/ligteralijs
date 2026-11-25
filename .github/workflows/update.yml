@@ -8,12 +8,10 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write   # nodig om de site naar de gh-pages branch te pushen
 
 concurrency:
-  group: pages
+  group: site
   cancel-in-progress: false
 
 jobs:
@@ -35,7 +33,9 @@ jobs:
 
       - name: Vorige data ophalen
         run: |
-          curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data.json" -o prev.json || echo '{}' > prev.json
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/data.json" -o prev.json \
+            || curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data.json" -o prev.json \
+            || echo '{}' > prev.json
 
       - name: Alle bronnen ophalen
         env:
@@ -75,30 +75,15 @@ jobs:
               print("melding verstuurd:", len(alerts))
           PY
 
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v4
-        with:
-          path: site
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url || steps.deploy2.outputs.page_url || steps.deploy3.outputs.page_url }}
-    steps:
-      # GitHub Pages geeft soms tijdelijk een 500; dan twee keer opnieuw proberen.
-      - id: deploy
-        uses: actions/deploy-pages@v4
-        continue-on-error: true
-      - if: steps.deploy.outcome == 'failure'
-        run: sleep 60
-      - id: deploy2
-        if: steps.deploy.outcome == 'failure'
-        uses: actions/deploy-pages@v4
-        continue-on-error: true
-      - if: steps.deploy.outcome == 'failure' && steps.deploy2.outcome == 'failure'
-        run: sleep 120
-      - id: deploy3
-        if: steps.deploy.outcome == 'failure' && steps.deploy2.outcome == 'failure'
-        uses: actions/deploy-pages@v4
+      # Publiceren via de gh-pages branch (Pages-bron: "Deploy from a branch").
+      # Steeds één verse commit, zodat de repo niet groeit door alle data-versies.
+      - name: Site naar gh-pages branch pushen
+        run: |
+          cd site
+          touch .nojekyll
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Bijgewerkt $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" gh-pages
