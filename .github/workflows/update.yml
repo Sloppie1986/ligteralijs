@@ -29,7 +29,7 @@ jobs:
           python-version: "3.12"
 
       - name: Pillow installeren (voor plaatjes)
-        run: pip install --quiet pillow==11.0.0
+        run: pip install --quiet pillow==11.0.0 anthropic
 
       - name: Vorige data ophalen
         run: |
@@ -41,6 +41,11 @@ jobs:
         env:
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
         run: python3 monitor.py site/data.json prev.json | tee result.json
+
+      - name: Berichten en kaarten laten beoordelen door Claude (1x per dagdeel)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 assess.py site/data.json || echo "beoordeling mislukt, site gaat gewoon door"
 
       - name: Pushmelding naar alle abonnees (OneSignal)
         if: ${{ env.ONESIGNAL_KEY != '' }}

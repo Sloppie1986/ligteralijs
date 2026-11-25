@@ -717,6 +717,7 @@ def main():
     if data.get("sneeuwhoogte"):
         data["sneeuwhoogte"]["img"] = thumb(data["sneeuwhoogte"].get("img_src"))
     add_images(data["posts"], (prev or {}).get("posts"))
+    data["ai"] = (prev or {}).get("ai")   # Claude-beoordeling (assess.py) bewaren tot de volgende
     data["om_blocked"] = OM_BLOCK.get("day")
     data["errors"] = errors
     if data.get("ice"):
