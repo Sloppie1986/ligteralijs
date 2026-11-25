@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<title>Ligt er al ijs?</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: één kolom op telefoon; op breed scherm links 'nu + ijs', rechts de berichtenstroom. */
+:root{
+  --bg:#eef2f5; --surface:#ffffff; --sunk:#e2e8ee; --line:#cfd8e0;
+  --fg:#14222e; --muted:#566676; --accent:#1f5f8b; --accent-soft:#d6e6f2;
+  --frost:#2b7bb9; --thaw:#b5522f; --warn:#b77900; --warn-bg:#fff4d6; --bad:#b3261e; --bad-bg:#fde4e1; --ok:#2d7a4b;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d151c; --surface:#15212b; --sunk:#1b2a36; --line:#2a3b49;
+  --fg:#e4edf4; --muted:#93a6b6; --accent:#7fb8e2; --accent-soft:#1c3446;
+  --frost:#79b6ea; --thaw:#e08a63; --warn:#f0b43c; --warn-bg:#3a2c0c; --bad:#ff8a80; --bad-bg:#3d1714; --ok:#7fd09c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d151c; --surface:#15212b; --sunk:#1b2a36; --line:#2a3b49;
+  --fg:#e4edf4; --muted:#93a6b6; --accent:#7fb8e2; --accent-soft:#1c3446;
+  --frost:#79b6ea; --thaw:#e08a63; --warn:#f0b43c; --warn-bg:#3a2c0c; --bad:#ff8a80; --bad-bg:#3d1714; --ok:#7fd09c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--f-body);margin:0}
+.wrap{max-width:1680px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:2.1rem;font-weight:700;text-transform:uppercase}
+h2{font-size:1.35rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 20px;margin-bottom:16px}
+.top p{margin:0}
+.stamp{font-size:.85rem;color:var(--muted);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block}
+.dot.stale{background:var(--warn)}
+button{font:600 .85rem var(--f-body);color:var(--accent);background:var(--accent-soft);border:0;border-radius:6px;padding:6px 10px;cursor:pointer}
+.grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,6fr) minmax(0,5fr);gap:20px;align-items:start}
+.grid>.forumcol{grid-column:auto}
+@media (max-width:1320px){.grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}.grid>.forumcol{grid-column:1 / -1}}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.panel>header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.alert{border-radius:8px;padding:10px 14px;background:var(--warn-bg);border-left:4px solid var(--warn)}
+.alert.red,.alert.orange{background:var(--bad-bg);border-left-color:var(--bad)}
+.alert strong{display:block}
+.now{display:grid;grid-template-columns:auto 1fr;gap:4px 18px;align-items:center}
+.big{font:600 4rem/1 var(--f-display);font-variant-numeric:tabular-nums}
+.now dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:0;font-size:.95rem}
+.now dt{color:var(--muted)} .now dd{margin:0}
+.stations{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{font-size:.85rem;background:var(--sunk);border-radius:999px;padding:3px 10px}
+.ice-head{display:flex;gap:14px;align-items:center;margin-bottom:10px}
+.gauge{display:flex;gap:3px}
+.gauge i{width:18px;height:28px;border-radius:3px;background:var(--sunk)}
+.gauge i.on{background:var(--frost)}
+.ice-label{font:600 1.4rem/1.1 var(--f-display)}
+.days{overflow-x:auto}
+.days table{border-collapse:collapse;width:100%;min-width:520px;font-size:.85rem}
+.days th,.days td{padding:5px 4px;text-align:center;border-bottom:1px solid var(--line)}
+.days th{font:600 .75rem var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.days td.lbl{text-align:left;color:var(--muted);white-space:nowrap}
+.days .today{background:var(--accent-soft)}
+.neg{color:var(--frost);font-weight:600} .pos{color:var(--thaw)}
+.bar{height:6px;border-radius:3px;background:var(--frost);margin:0 auto}
+.lakes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.lake{background:var(--sunk);border-radius:8px;padding:8px 10px;font-size:.9rem}
+.lake b{display:block;font-weight:600}
+.lake .st{font-size:.85rem}
+.lake.open .st{color:var(--ok);font-weight:600}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.filters button{background:var(--sunk);color:var(--fg);font-weight:600}
+.filters button[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+.feed{display:flex;flex-direction:column}
+.post{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:4px 14px;padding:12px 0;border-top:1px solid var(--line)}
+.post:first-child{border-top:0}
+.post time{font:500 .8rem var(--f-mono);color:var(--muted);padding-top:3px}
+.post .src{font:600 .75rem var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.post h3{font:600 1.05rem/1.3 var(--f-body);text-wrap:pretty}
+.post h3 a{color:var(--fg);text-decoration:none}
+.post h3 a:hover{text-decoration:underline}
+.post p{margin:4px 0 0;font-size:.92rem;color:var(--muted);overflow-wrap:anywhere}
+.post.fresh .src::after{content:"nieuw";margin-left:8px;color:var(--surface);background:var(--thaw);border-radius:4px;padding:0 5px;font-size:.7rem}
+.post .pic{display:block;width:132px;max-width:100%;border-radius:6px;overflow:hidden;background:var(--sunk);align-self:start}
+.post .pic img{display:block;width:100%;height:auto}
+@media (max-width:520px){.post{grid-template-columns:minmax(0,1fr)}.post .pic{width:100%}}
+.forum{display:flex;flex-direction:column;max-height:calc(100vh - 140px);overflow:auto;overscroll-behavior:contain}
+@media (max-width:1320px){.forum{max-height:70vh}}
+.fpost{padding:10px 0;border-top:1px solid var(--line)}
+.fpost:first-child{border-top:0}
+.fpost.reply{padding-left:14px;border-left:3px solid var(--line);margin-left:2px}
+.fmeta{display:flex;gap:10px;align-items:baseline;font-size:.82rem;color:var(--muted);flex-wrap:wrap}
+.fmeta b{color:var(--fg);font-weight:600;font-size:.92rem}
+.fpost p{margin:4px 0 0;font-size:.95rem;white-space:pre-line;overflow-wrap:anywhere}
+.fimgs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.fimgs a{display:block;max-width:100%;border-radius:6px;overflow:hidden;background:var(--sunk)}
+.fimgs img{display:block;max-width:100%;max-height:340px;width:auto;height:auto}
+.fcheck{border-radius:8px;padding:8px 12px;background:var(--warn-bg);border-left:4px solid var(--warn);margin-bottom:10px;font-size:.9rem}
+.fhead a{color:var(--fg);font-weight:600}
+.xgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.xgrid a{display:block;background:var(--sunk);border-radius:8px;padding:8px 10px;text-decoration:none;color:var(--fg)}
+.xgrid a span{display:block;font-size:.78rem;color:var(--muted)}
+.note{font-size:.85rem;color:var(--muted);margin:10px 0 0}
+.report{white-space:pre-line;font-size:.95rem;max-height:16em;overflow:auto}
+footer{margin-top:28px;font-size:.85rem;color:var(--muted);max-width:75ch}
+footer ul{padding-left:1.1em}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+/* telefoon: één tab tegelijk, vaste tabbalk onderin */
+.tabbar{display:none}
+.mini{display:none}
+@media (max-width:900px){
+  body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+  .wrap{padding-block:0 24px}
+  .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 12px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);flex-wrap:nowrap;align-items:center}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+  .top h1{font-size:1.35rem;line-height:1.1}
+  .top p.muted{display:none}
+  .top .stamp{flex-direction:column;align-items:flex-end;gap:4px;font-size:.75rem;white-space:nowrap}
+  .top .stamp button{padding:4px 8px;font-size:.75rem}
+  .mini{display:inline-flex;gap:8px;align-items:baseline;white-space:nowrap;font:600 1.05rem var(--f-display);color:var(--fg)}
+  .mini span{font:400 .8rem var(--f-body);color:var(--muted)}
+  @media (max-width:420px){.mini span{display:none}}
+  .grid>[data-tab]{display:none}
+  .grid>[data-tab].active{display:flex}
+  .panel{border-radius:12px;padding:14px}
+  .big{font-size:3.2rem}
+  .filters{flex-wrap:nowrap;overflow-x:auto;margin:0 -14px 10px;padding:0 14px 4px;scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .filters button{white-space:nowrap;flex:none}
+  .post{grid-template-columns:minmax(0,1fr);gap:6px}
+  .post time{order:-1;padding:0}
+  .post .pic{width:100%;order:3}
+  .post .pic img{max-height:260px;object-fit:cover}
+  .forum{max-height:none;overflow:visible}
+  .tabbar{display:grid;grid-template-columns:repeat(3,1fr);position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+  .tabbar a{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:10px;text-decoration:none;color:var(--muted);font:600 .78rem var(--f-body)}
+  .tabbar a svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .tabbar a[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
+  .tabbar .badge{position:absolute;top:2px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--thaw);color:#fff;font:700 .68rem/18px var(--f-body);text-align:center}
+}
+@media (prefers-reduced-motion:no-preference){.post.fresh{animation:pop .6s ease-out}@keyframes pop{from{background:var(--accent-soft)}to{background:transparent}}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Ligt er al ijs?</h1>
+      <p class="muted">Weer, vorst, natuurijs en de laatste berichten voor Midden-Nederland, op één plek.</p>
+    </div>
+    <div class="mini" id="mini" aria-hidden="true"></div>
+    <div class="stamp"><span><span id="dot" class="dot"></span> <span id="updated">Laden…</span></span><button id="reload" type="button">Nu verversen</button></div>
+  </div>
+
+  <div id="alerts" class="alerts"></div>
+
+  <div class="grid">
+    <div class="col active" data-tab="overzicht">
+      <section class="panel" aria-labelledby="h-now">
+        <header><h2 id="h-now">Nu in De Bilt</h2><span class="muted" id="provider"></span></header>
+        <div class="now">
+          <div class="big" id="temp">–</div>
+          <dl id="nowdl"></dl>
+        </div>
+        <div class="stations" id="stations"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-ice">
+        <header><h2 id="h-ice">IJsindicator</h2><span class="muted">rekenmodel, geen meting</span></header>
+        <div class="ice-head">
+          <div class="gauge" id="gauge" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div><div class="ice-label" id="icelabel">–</div><div class="muted" id="icesub"></div></div>
+        </div>
+        <div class="days"><table id="days"></table></div>
+        <p class="note">IJsdikte geschat uit opgetelde vorstgraden (daggemiddelde onder 0 °C) voor stilstaand, ondiep water zonder sneeuw. Ga nooit het ijs op zonder bericht van de ijsclub of ijsmeester.</p>
+      </section>
+
+      <section class="panel" aria-labelledby="h-lakes">
+        <header><h2 id="h-lakes">Plassen Wijdemeren</h2><a id="arendlink" href="https://weerstationdearend.nl/" target="_blank" rel="noopener">Meteo Kortenhoef / De Arend</a></header>
+        <p id="arendnews" style="margin:0 0 10px"></p>
+        <div class="lakes" id="lakes"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-report">
+        <header><h2 id="h-report">Weerbericht Buienradar</h2><span class="muted mono" id="reporttime"></span></header>
+        <h3 id="reporttitle" style="font:600 1.1rem var(--f-body);margin-bottom:6px"></h3>
+        <div class="report" id="reporttext"></div>
+      </section>
+    </div>
+
+    <div class="col" data-tab="berichten">
+      <section class="panel" aria-labelledby="h-feed">
+        <header><h2 id="h-feed">Laatste berichten</h2><span class="muted" id="feedcount"></span></header>
+        <div class="filters" id="filters" role="group" aria-label="Filter op bron"></div>
+        <div class="feed" id="feed"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-x">
+        <header><h2 id="h-x">Weermannen op X</h2></header>
+        <div class="xgrid" id="xgrid"></div>
+        <p class="note">Posts van de afgelopen 30 dagen staan in de stroom hierboven, met een filter per account. Deze knoppen openen het account op X.</p>
+      </section>
+    </div>
+
+    <div class="col forumcol" data-tab="forum">
+      <section class="panel" aria-labelledby="h-forum">
+        <header><h2 id="h-forum">Noodweer forum</h2><span class="muted" id="forummeta"></span></header>
+        <div class="fhead" id="forumhead" style="margin-bottom:10px"></div>
+        <div id="forumcheck"></div>
+        <div class="forum" id="forum"></div>
+        <p class="note">Alleen de lopende kaartendraad "Weerbericht komende dagen", nieuwste reactie bovenaan. Andere artikelen van Noodweer staan in de berichtenstroom.</p>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    <h2 style="font-size:1rem;margin:0 0 4px">Bronnen</h2>
+    <ul>
+      <li>Verwachting: Open-Meteo (KNMI- en ECMWF-modellen), bij storing MET Norway. Waarschuwingen: KNMI via MeteoAlarm. Metingen en weerbericht: Buienradar.</li>
+      <li>Berichten: NoodweerBenelux (artikelen en het kaartenforum), Wintersportweerman, Kai Zorn Wetter (YouTube), Sneeuwhoogte.nl, Meteo Kortenhoef / De Arend en de weermannen op X (via de X API).</li>
+      <li>De gegevens worden elk uur opgehaald. Deze pagina kijkt elke 15 minuten of er een nieuwe versie is.</li>
+    </ul>
+  </footer>
+</div>
+
+<nav class="tabbar" aria-label="Onderdelen">
+  <a href="#overzicht" data-go="overzicht" aria-current="page"><svg viewBox="0 0 24 24"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7"/><path d="M9 3.5l3 2 3-2M9 20.5l3-2 3 2"/></svg>Weer &amp; ijs</a>
+  <a href="#berichten" data-go="berichten"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg>Berichten<span class="badge" id="b-berichten" hidden></span></a>
+  <a href="#forum" data-go="forum"><svg viewBox="0 0 24 24"><path d="M3 6h12v8H7l-4 3z"/><path d="M15 9h6v8l-3-2h-6v-1"/></svg>Forum<span class="badge" id="b-forum" hidden></span></a>
+</nav>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const el = (tag, attrs = {}, kids = []) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "text") n.textContent = v; else if (k === "cls") n.className = v; else n.setAttribute(k, v);
+    }
+    for (const c of [].concat(kids)) if (c) n.append(c);
+    return n;
+  };
+  const img = u => typeof u === "string" && u.startsWith("data:image/") ? u : null;
+  const safeUrl = u => (typeof u === "string" && u.startsWith("https://")) ? u : null;
+  const fmtT = v => v == null ? "–" : (Math.round(v * 10) / 10).toLocaleString("nl-NL", {minimumFractionDigits: 1}) + "°";
+  const tz = {timeZone: "Europe/Amsterdam"};
+  const ago = iso => {
+    if (!iso) return "";
+    const m = Math.round((Date.now() - new Date(iso)) / 60000);
+    if (m < 1) return "zojuist";
+    if (m < 60) return m + " min geleden";
+    if (m < 60 * 24) return Math.round(m / 60) + " uur geleden";
+    return new Date(iso).toLocaleDateString("nl-NL", {...tz, day: "numeric", month: "short"});
+  };
+  const WX = {0:"Helder",1:"Vrijwel helder",2:"Half bewolkt",3:"Bewolkt",45:"Mist",48:"Rijpmist",51:"Motregen",53:"Motregen",55:"Motregen",56:"IJzel",57:"IJzel",61:"Lichte regen",63:"Regen",65:"Zware regen",66:"IJzel",67:"IJzel",71:"Lichte sneeuw",73:"Sneeuw",75:"Zware sneeuw",77:"Korrelsneeuw",80:"Buien",81:"Buien",82:"Zware buien",85:"Sneeuwbuien",86:"Sneeuwbuien",95:"Onweer",96:"Onweer",99:"Onweer"};
+  let data = null, filter = "Alles", lastSeen = null;
+  try { lastSeen = localStorage.getItem("ijsklok-seen"); } catch (e) {}
+
+  async function load() {
+    try {
+      const r = await fetch("data.json?t=" + Date.now(), {cache: "no-store"});
+      if (!r.ok) throw new Error(r.status);
+      data = await r.json();
+      render();
+    } catch (e) {
+      $("updated").textContent = "Gegevens konden niet worden geladen. Probeer het zo opnieuw.";
+    }
+  }
+
+  let render = function () {
+    const d = data;
+    const upd = new Date(d.updated);
+    const stale = Date.now() - upd > 2.5 * 3600e3;
+    $("dot").className = "dot" + (stale ? " stale" : "");
+    $("updated").textContent = "Bijgewerkt " + upd.toLocaleString("nl-NL", {...tz, weekday: "short", hour: "2-digit", minute: "2-digit"}) + (stale ? " (verouderd)" : "");
+
+    // waarschuwingen + meldingen
+    const A = $("alerts"); A.replaceChildren();
+    for (const w of d.warnings || []) {
+      const lvl = (w.level || "").toLowerCase();
+      A.append(el("div", {cls: "alert " + lvl}, [el("strong", {text: (w.headline || w.event)}),
+        el("span", {text: (w.description || "").slice(0, 300)})]));
+    }
+    for (const a of d.alerts || []) A.append(el("div", {cls: "alert"}, [el("span", {text: a})]));
+
+    // nu
+    const f = d.forecast || {}, c = f.current || {};
+    const bs = (d.buienradar && d.buienradar.stations) || [];
+    const bilt = bs.find(s => s.name === "De Bilt");
+    $("temp").textContent = fmtT(bilt ? bilt.temp : c.temperature_2m);
+    $("provider").textContent = f.provider ? "verwachting: " + f.provider : "";
+    const dl = $("nowdl"); dl.replaceChildren();
+    const row = (k, v) => { if (v != null && v !== "") dl.append(el("dt", {text: k}), el("dd", {text: v})); };
+    row("Weer", bilt ? bilt.desc : WX[c.weather_code]);
+    row("Gevoel", bilt && bilt.feel != null ? fmtT(bilt.feel) : (c.apparent_temperature != null ? fmtT(c.apparent_temperature) : null));
+    row("Wind", bilt ? `${bilt.winddir} ${bilt.wind} Bft` : (c.wind_speed_10m != null ? Math.round(c.wind_speed_10m) + " km/u" : null));
+    row("Grond", bilt && bilt.ground != null ? fmtT(bilt.ground) : null);
+    const daily = f.daily || {};
+    const ti = (daily.time || []).indexOf(new Date().toLocaleDateString("sv-SE", tz));
+    if (ti >= 0) row("Vandaag", `${fmtT(daily.temperature_2m_min[ti])} / ${fmtT(daily.temperature_2m_max[ti])}`);
+    const st = $("stations"); st.replaceChildren();
+    for (const s of bs) if (s.name !== "De Bilt") st.append(el("span", {cls: "chip mono", text: `${s.name} ${fmtT(s.temp)}`}));
+
+    // ijs
+    const ice = d.ice;
+    if (ice) {
+      [...$("gauge").children].forEach((g, i) => g.classList.toggle("on", i < ice.level));
+      $("icelabel").textContent = ice.labels[ice.level] + (ice.today ? ` · ~${ice.today.cm} cm` : "");
+      $("icesub").textContent = ice.peak && ice.peak.cm > (ice.today ? ice.today.cm : 0)
+        ? `Verwachte piek ${new Date(ice.peak.date).toLocaleDateString("nl-NL", {weekday: "short", day: "numeric", month: "short"})}: ~${ice.peak.cm} cm (${ice.labels[ice.peak_level].toLowerCase()})`
+        : "Geen verdere ijsgroei verwacht in de komende dagen";
+      const today = new Date().toLocaleDateString("sv-SE", tz);
+      const rows = ice.rows.filter(r => r.date >= today).slice(0, 10);
+      const T = $("days"); T.replaceChildren();
+      const head = el("tr", {}, [el("th", {text: ""})]);
+      const rMin = el("tr", {}, [el("td", {cls: "lbl", text: "Min"})]);
+      const rMax = el("tr", {}, [el("td", {cls: "lbl", text: "Max"})]);
+      const rCm = el("tr", {}, [el("td", {cls: "lbl", text: "IJs cm"})]);
+      for (const r of rows) {
+        const cls = r.date === today ? "today" : "";
+        head.append(el("th", {cls, text: new Date(r.date).toLocaleDateString("nl-NL", {weekday: "short", day: "numeric"})}));
+        const tc = v => el("td", {cls: cls + " mono " + (v < 0 ? "neg" : "pos"), text: fmtT(v)});
+        rMin.append(tc(r.tmin)); rMax.append(tc(r.tmax));
+        const td = el("td", {cls: cls + " mono", text: r.cm ? r.cm.toLocaleString("nl-NL") : "–"});
+        if (r.cm) td.prepend(el("div", {cls: "bar", style: `width:${Math.min(100, r.cm * 6)}%`}));
+        rCm.append(td);
+      }
+      T.append(head, rMin, rMax, rCm);
+    }
+
+    // De Arend
+    const ar = d.dearend || {};
+    $("arendnews").textContent = ar.news || "";
+    const L = $("lakes"); L.replaceChildren();
+    for (const l of ar.ice || []) {
+      const open = !/geen ijs|gesloten/i.test(l.status);
+      L.append(el("div", {cls: "lake" + (open ? " open" : "")}, [el("b", {text: `${l.place} · ${l.spot}`}), el("span", {cls: "st", text: l.status})]));
+    }
+    if (!(ar.ice || []).length) L.append(el("div", {cls: "muted", text: "Geen ijsstatus beschikbaar."}));
+
+    // weerbericht
+    const rep = (d.buienradar && d.buienradar.report) || {};
+    $("reporttitle").textContent = rep.title || "";
+    $("reporttext").textContent = rep.text || rep.summary || "";
+    $("reporttime").textContent = rep.published ? new Date(rep.published).toLocaleString("nl-NL", {weekday: "short", hour: "2-digit", minute: "2-digit"}) : "";
+
+    renderFeed();
+    renderForum();
+
+    // X
+    const X = $("xgrid"); X.replaceChildren();
+    for (const x of d.x_accounts || []) {
+      const u = safeUrl(x.url); if (!u) continue;
+      X.append(el("a", {href: u, target: "_blank", rel: "noopener"}, [document.createTextNode("@" + x.handle), el("span", {text: x.why === "eigen keuze" ? "jouw lijst" : x.why})]));
+    }
+  }
+;
+  function allPosts() {
+    const d = data, out = [...(d.posts || [])];
+    for (const c of d.comments || []) out.push({...c, title: c.summary ? c.summary.slice(0, 140) : c.title, summary: "Reactie bij: " + (c.article || ""), source: "Noodweer reacties"});
+    if (d.sneeuwhoogte) out.push({...d.sneeuwhoogte, time: d.sneeuwhoogte.time || null});
+    return out.sort((a, b) => (b.time || "").localeCompare(a.time || ""));
+  }
+
+  function renderFeed() {
+    const posts = allPosts();
+    const sources = ["Alles", ...new Set(posts.map(p => p.source))];
+    const F = $("filters"); F.replaceChildren();
+    for (const s of sources) {
+      const b = el("button", {type: "button", "aria-pressed": String(s === filter), text: s});
+      b.onclick = () => { filter = s; renderFeed(); };
+      F.append(b);
+    }
+    const list = posts.filter(p => filter === "Alles" || p.source === filter);
+    $("feedcount").textContent = list.length + " berichten";
+    const FE = $("feed"); FE.replaceChildren();
+    if (!list.length) FE.append(el("div", {cls: "empty", text: "Nog geen berichten van deze bron."}));
+    for (const p of list) {
+      const u = safeUrl(p.url);
+      const fresh = lastSeen && p.time && p.time > lastSeen;
+      const title = u ? el("a", {href: u, target: "_blank", rel: "noopener", text: p.title || "(zonder titel)"}) : document.createTextNode(p.title || "");
+      const pic = img(p.img) ? (u ? el("a", {cls: "pic", href: u, target: "_blank", rel: "noopener"}, [el("img", {src: p.img, alt: "", loading: "lazy"})]) : el("div", {cls: "pic"}, [el("img", {src: p.img, alt: "", loading: "lazy"})])) : el("span");
+      FE.append(el("article", {cls: "post" + (fresh ? " fresh" : "")}, [
+        el("time", {datetime: p.time || "", text: p.time ? ago(p.time) : (p.date || "")}),
+        el("div", {}, [el("div", {cls: "src", text: p.source + (p.comments ? ` · ${p.comments} reacties` : "")}), el("h3", {}, [title]), p.summary ? el("p", {text: p.summary.slice(0, 260)}) : null]),
+        pic
+      ]));
+    }
+  }
+
+  function renderForum() {
+    const fo = data.forum || {};
+    const H = $("forumhead"); H.replaceChildren();
+    const fu = safeUrl(fo.url);
+    if (fo.title) H.append(fu ? el("a", {href: fu, target: "_blank", rel: "noopener", text: fo.title}) : document.createTextNode(fo.title));
+    $("forummeta").textContent = fo.total != null ? `${fo.total} reacties · ${fo.closed ? "op slot" : "open"}` : "";
+    const C = $("forumcheck"); C.replaceChildren();
+    if (fo.check) C.append(el("div", {cls: "fcheck", text: fo.check}));
+    const F = $("forum"); F.replaceChildren();
+    const list = fo.posts || [];
+    if (!list.length) F.append(el("div", {cls: "empty", text: "Nog geen reacties opgehaald."}));
+    for (const p of list) {
+      const fresh = lastSeen && p.time > lastSeen;
+      const imgs = el("div", {cls: "fimgs"});
+      for (const im of p.images || []) {
+        const src = img(im.img); if (!src) continue;
+        const href = safeUrl(im.src);
+        const pic = el("img", {src, alt: "Kaart of grafiek bij reactie van " + p.author, loading: "lazy"});
+        imgs.append(href ? el("a", {href, target: "_blank", rel: "noopener"}, [pic]) : pic);
+      }
+      F.append(el("article", {cls: "fpost" + (p.reply ? " reply" : "") + (fresh ? " fresh" : "")}, [
+        el("div", {cls: "fmeta"}, [el("b", {text: p.author}), el("time", {datetime: p.time, text: ago(p.time)}), p.likes ? el("span", {text: "▲ " + p.likes}) : null, fresh ? el("span", {cls: "chip", text: "nieuw"}) : null]),
+        p.text ? el("p", {text: p.text}) : null,
+        imgs.children.length ? imgs : null
+      ]));
+    }
+  }
+
+  function markSeen() {
+    try { localStorage.setItem("ijsklok-seen", new Date().toISOString()); } catch (e) {}
+  }
+
+  const TABS = ["overzicht", "berichten", "forum"];
+  function showTab() {
+    const t = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "overzicht";
+    document.querySelectorAll(".grid>[data-tab]").forEach(c => c.classList.toggle("active", c.dataset.tab === t));
+    document.querySelectorAll(".tabbar a").forEach(a => { if (a.dataset.go === t) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+    if (matchMedia("(max-width:900px)").matches) window.scrollTo(0, 0);
+  }
+  window.addEventListener("hashchange", showTab);
+  showTab();
+  function badges() {
+    if (!data) return;
+    const n1 = lastSeen ? allPosts().filter(p => p.time && p.time > lastSeen).length : 0;
+    const n2 = lastSeen ? ((data.forum || {}).posts || []).filter(p => p.time > lastSeen).length : 0;
+    for (const [id, n] of [["b-berichten", n1], ["b-forum", n2]]) { const b = $(id); b.hidden = !n; b.textContent = n > 99 ? "99+" : String(n); }
+    const M = $("mini"); M.replaceChildren();
+    const bs = ((data.buienradar || {}).stations || []).find(s => s.name === "De Bilt");
+    const t = bs ? bs.temp : ((data.forecast || {}).current || {}).temperature_2m;
+    if (t != null) M.append(document.createTextNode(fmtT(t)), el("span", {text: data.ice ? data.ice.labels[data.ice.level] : ""}));
+  }
+  const _render = render;
+  render = function () { _render(); badges(); };
+
+  $("reload").onclick = load;
+  load().then(() => setTimeout(markSeen, 5000));
+  setInterval(load, 15 * 60 * 1000);
+  setInterval(() => { if (data) { renderFeed(); renderForum(); } }, 60 * 1000);
+})();
+</script>
+
+</body>
+</html>

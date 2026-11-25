@@ -1,0 +1,67 @@
+name: IJsklok bijwerken
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # elke 15 minuten (GitHub kan een paar minuten uitlopen)
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Pillow installeren (voor plaatjes)
+        run: pip install --quiet pillow==11.0.0
+
+      - name: Vorige data ophalen
+        run: |
+          curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data.json" -o prev.json || echo '{}' > prev.json
+
+      - name: Alle bronnen ophalen
+        env:
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+        run: python3 monitor.py site/data.json prev.json | tee result.json
+
+      - name: Melding sturen bij relevante verandering
+        if: ${{ env.NTFY_TOPIC != '' }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          alerts = json.load(open("site/data.json")).get("alerts") or []
+          if alerts:
+              url = f"https://{os.environ['GITHUB_REPOSITORY_OWNER'].lower()}.github.io/{os.environ['GITHUB_REPOSITORY'].split('/')[1]}/"
+              req = urllib.request.Request("https://ntfy.sh/" + os.environ["NTFY_TOPIC"],
+                                           data="\n".join(alerts).encode(),
+                                           headers={"Title": "Ligt er al ijs?", "Click": url, "Tags": "ice_skate"})
+              urllib.request.urlopen(req, timeout=20)
+              print("melding verstuurd:", len(alerts))
+          PY
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
