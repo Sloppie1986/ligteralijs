@@ -36,5 +36,5 @@ jobs:
             sleep 900
           done
       - name: Klok opnieuw starten
-        if: always()
+        if: ${{ !cancelled() }}   # niet na annuleren, anders gaan twee klokken elkaar steeds herstarten
         run: gh workflow run klok.yml --ref main
