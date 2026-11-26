@@ -416,7 +416,52 @@ def sneeuwhoogte():
 
 
 # ---------------------------------------------------------------- ijs
-def ice_model(fc, prev=None):
+# Modellen voor de ijsindicator, in volgorde van voorkeur (fijnmazig eerst). Per dag tellen de eerste 3
+# die die dag volledig dekken. Fijnmazige modellen reiken maar ~2 dagen; daarna nemen de beste
+# middelfijne en wereldmodellen het over.
+ICE_MODELS = [
+    ("knmi_harmonie_arome_netherlands", "HARMONIE (KNMI, 2 km)"),
+    ("dwd_icon_d2", "ICON-D2 (DWD, 2 km)"),
+    ("meteofrance_arome_france_hd", "AROME (Météo-France, 1,5 km)"),
+    ("ecmwf_ifs", "ECMWF IFS (9 km)"),
+    ("icon_eu", "ICON-EU (DWD, 7 km)"),
+    ("ukmo_seamless", "UKMO (Met Office, 10 km)"),
+    ("dwd_icon", "ICON (DWD, 13 km)"),
+    ("gfs_seamless", "GFS (NOAA, 13-25 km)"),
+]
+
+
+def ice_ensemble():
+    """Daggemiddelde/min/max per dag als gemiddelde van de 3 beste beschikbare modellen, plus spreiding."""
+    url = ("https://api.open-meteo.com/v1/forecast?latitude=%.2f&longitude=%.2f&hourly=temperature_2m"
+           "&timezone=Europe%%2FAmsterdam&past_days=1&forecast_days=10&models=%s") % (LAT, LON, ",".join(m for m, _ in ICE_MODELS))
+    h = json.loads(get(url))["hourly"]
+    per = {}   # dag -> model -> [temps]
+    for m, _ in ICE_MODELS:
+        vals = h.get("temperature_2m_" + m) or []
+        for t, v in zip(h["time"], vals):
+            if v is not None:
+                per.setdefault(t[:10], {}).setdefault(m, []).append(v)
+    out = {}
+    names = dict(ICE_MODELS)
+    for day, ms in per.items():
+        full = [m for m, _ in ICE_MODELS if len(ms.get(m, [])) >= 22][:3]
+        if not full:
+            continue
+        stats = [(min(ms[m]), max(ms[m]), sum(ms[m]) / len(ms[m])) for m in full]
+        means = [x[2] for x in stats]
+        out[day] = {
+            "tmin": round(sum(x[0] for x in stats) / len(stats), 1),
+            "tmax": round(sum(x[1] for x in stats) / len(stats), 1),
+            "tmean": round(sum(means) / len(means), 1),
+            "spread": round(max(means) - min(means), 1),
+            "models": [names[m] for m in full],
+            "per_model": {names[m]: round(x[2], 1) for m, x in zip(full, stats)},
+        }
+    return out
+
+
+def ice_model(fc, prev=None, ens=None):
     """Ruwe natuurijs-indicator uit daggemiddelde temperatuur (graaddagen vorst).
 
     Aanname: vorstsom stijgt met -Tgem op vriesdagen en zakt met Tgem op dooidagen.
@@ -433,6 +478,9 @@ def ice_model(fc, prev=None):
     for day, tmin, tmax, tmean in zip(d["time"], d["temperature_2m_min"], d["temperature_2m_max"], d["temperature_2m_mean"]):
         if tmean is not None and (day >= today or day not in series):
             series[day] = (tmin, tmax, tmean)
+    for day, e in (ens or {}).items():   # modelgemiddelde gaat voor
+        if day >= today or day not in series:
+            series[day] = (e["tmin"], e["tmax"], e["tmean"])
     cutoff = (dt.date.fromisoformat(today) - dt.timedelta(days=30)).isoformat()
     s, rows = 0.0, []
     for day in sorted(series):
@@ -441,8 +489,11 @@ def ice_model(fc, prev=None):
         tmin, tmax, tmean = series[day]
         s = max(0.0, s - tmean) if tmean < 0 else max(0.0, s - tmean * 1.5)
         cm = round(1.5 * math.sqrt(s), 1)
-        rows.append({"date": day, "tmin": tmin, "tmax": tmax, "tmean": tmean,
-                     "fdd": round(s, 1), "cm": cm, "forecast": day >= today})
+        row = {"date": day, "tmin": tmin, "tmax": tmax, "tmean": tmean,
+               "fdd": round(s, 1), "cm": cm, "forecast": day >= today}
+        if day in (ens or {}) and day >= today:
+            row.update({k: ens[day][k] for k in ("spread", "models", "per_model")})
+        rows.append(row)
     def level(cm):
         if cm < 2: return 0
         if cm < 5: return 1
@@ -712,7 +763,13 @@ def main():
         i0 = next((i for i, t in enumerate(h["time"]) if t >= now), 0)
         for k in h:
             h[k] = h[k][i0:i0 + 48]
-        data["ice"] = ice_model(fc, prev)
+        try:
+            ens = ice_ensemble()
+        except Exception as e:
+            ens = None
+            errors["ijsmodellen"] = f"{type(e).__name__}: {e}"[:300]
+        data["ice"] = ice_model(fc, prev, ens)
+        data["ice"]["source"] = "gemiddelde van 3 modellen per dag" if ens else data["forecast"].get("provider")
         data["forecast"]["provider"] = fc.get("provider")
     if data.get("sneeuwhoogte"):
         data["sneeuwhoogte"]["img"] = thumb(data["sneeuwhoogte"].get("img_src"))

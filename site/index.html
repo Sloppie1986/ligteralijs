@@ -96,6 +96,8 @@ button:hover{filter:brightness(.96)}
 .days th{font:600 .75rem var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .days td.lbl{text-align:left;color:var(--muted);white-space:nowrap}
 .days .today{background:var(--accent-soft)}
+.days td.zeker{color:var(--ok)} .days td.matig{color:var(--warn)} .days td.onzeker{color:var(--thaw);font-weight:600}
+.days td.models{font-size:.66rem;color:var(--muted);line-height:1.2;white-space:normal;min-width:44px}
 .neg{color:var(--frost);font-weight:600} .pos{color:var(--thaw)}
 .trend-h{font:600 .8rem var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px}
 .trend{display:flex;flex-direction:column;gap:2px;font-size:.85rem}
@@ -172,7 +174,7 @@ footer ul{padding-left:1.1em}
   .wrap{padding-block:0 24px}
   .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 82%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 12px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);flex-wrap:nowrap;align-items:center}
   body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
-  .top h1{font-size:1.35rem;line-height:1.1}
+  .top h1{font-size:1.3rem;line-height:1.1;white-space:nowrap;gap:6px}
   .top p.muted{display:none}
   .top .stamp{flex-direction:column;align-items:flex-end;gap:4px;font-size:.75rem;white-space:nowrap}
   .top .stamp button{padding:4px 8px;font-size:.75rem}
@@ -227,7 +229,7 @@ footer ul{padding-left:1.1em}
       </section>
 
       <section class="panel" aria-labelledby="h-ice">
-        <header><h2 id="h-ice">IJsindicator</h2><span class="muted">rekenmodel, geen meting</span></header>
+        <header><h2 id="h-ice">IJsindicator</h2><span class="muted" id="icesrc">rekenmodel, geen meting</span></header>
         <div class="ice-head">
           <div class="gauge" id="gauge" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div><div class="ice-label" id="icelabel">–</div><div class="muted" id="icesub"></div></div>
@@ -241,6 +243,7 @@ footer ul{padding-left:1.1em}
         <div class="ai" id="ai" hidden></div>
         <div class="trend" id="trend"></div>
         <p class="note">Trend: per dagdeel de verwachting van dat moment, vergeleken met het dagdeel ervoor. Blauw ▲ = kouder/meer ijs verwacht, rood ▼ = zachter. De stemming telt woorden als vorst, ijs, oostenwind tegenover dooi, zacht, zuidwest; dat is een grove graadmeter, geen echte taalanalyse. Vorstsom = opgetelde graden onder nul (daggemiddelde) over de komende dagen.</p>
+        <p class="note">Temperaturen per dag = gemiddelde van de 3 beste modellen die die dag dekken. De eerste 2 dagen zijn dat de fijnmazige modellen HARMONIE (KNMI), ICON-D2 (Duitsland) en AROME (Frankrijk); die rekenen niet verder vooruit. Daarna ECMWF, ICON-EU en UKMO, en na een week ECMWF en GFS. Spreiding = hoeveel de modellen het oneens zijn over de daggemiddelde temperatuur (groen = eens, rood = onzeker). Houd je vinger op een cijfer voor de waarde per model.</p>
         <p class="note">IJsdikte geschat uit opgetelde vorstgraden (daggemiddelde onder 0 °C) voor stilstaand, ondiep water zonder sneeuw. Ga nooit het ijs op zonder bericht van de ijsclub of ijsmeester.</p>
       </section>
 
@@ -470,6 +473,7 @@ footer ul{padding-left:1.1em}
       $("icesub").textContent = ice.peak && ice.peak.cm > (ice.today ? ice.today.cm : 0)
         ? `Verwachte piek ${new Date(ice.peak.date).toLocaleDateString("nl-NL", {weekday: "short", day: "numeric", month: "short"})}: ~${ice.peak.cm} cm (${ice.labels[ice.peak_level].toLowerCase()})`
         : "Geen verdere ijsgroei verwacht in de komende dagen";
+      $("icesrc").textContent = ice.source ? `rekenmodel · ${ice.source}` : "rekenmodel, geen meting";
       const pos = cm => Math.max(0, Math.min(100, (cm || 0) / 15 * 100)) + "%";
       const nowCm = ice.today ? ice.today.cm : 0, peakCm = ice.peak ? ice.peak.cm : nowCm;
       $("ib-now").style.left = pos(nowCm); $("ib-peak").style.left = pos(peakCm); $("ib-peak").hidden = !(peakCm > nowCm);
@@ -481,6 +485,9 @@ footer ul{padding-left:1.1em}
       const rMin = el("tr", {}, [el("td", {cls: "lbl", text: "Min"})]);
       const rMax = el("tr", {}, [el("td", {cls: "lbl", text: "Max"})]);
       const rCm = el("tr", {}, [el("td", {cls: "lbl", text: "IJs cm"})]);
+      const rSp = el("tr", {}, [el("td", {cls: "lbl", text: "Spreiding"})]);
+      const rMo = el("tr", {}, [el("td", {cls: "lbl", text: "Modellen"})]);
+      const short = n => n.split(" ")[0].replace("HARMONIE", "HARM").replace("ECMWF", "EC").replace("ICON-D2", "D2").replace("ICON-EU", "EU").replace("AROME", "AROME");
       for (const r of rows) {
         const cls = r.date === today ? "today" : "";
         head.append(el("th", {cls, text: new Date(r.date).toLocaleDateString("nl-NL", {weekday: "short", day: "numeric"})}));
@@ -489,8 +496,13 @@ footer ul{padding-left:1.1em}
         const td = el("td", {cls: cls + " mono", text: r.cm ? r.cm.toLocaleString("nl-NL") : "–"});
         if (r.cm) td.prepend(el("div", {cls: "bar", style: `width:${Math.min(100, r.cm * 6)}%`}));
         rCm.append(td);
+        const sp = r.spread;
+        rSp.append(el("td", {cls: cls + " mono " + (sp == null ? "" : sp <= 1 ? "zeker" : sp <= 2.5 ? "matig" : "onzeker"), text: sp == null ? "–" : "±" + (sp / 2).toLocaleString("nl-NL", {maximumFractionDigits: 1}),
+          title: r.per_model ? Object.entries(r.per_model).map(([m, v]) => `${m}: ${fmtT(v)}`).join("\n") : ""}));
+        rMo.append(el("td", {cls: cls + " models", text: (r.models || []).map(short).join(" ") || "–"}));
       }
       T.append(head, rMin, rMax, rCm);
+      if (rows.some(r => r.models)) T.append(rSp, rMo);
     }
     // beoordeling door Claude
     const AI = $("ai"), ai = d.ai;
