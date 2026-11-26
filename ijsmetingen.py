@@ -322,6 +322,63 @@ def temps_for(points):
     return res
 
 
+OBS_HOURS = 36      # gemeten uurtemperaturen zo lang bewaren
+MAX_KM = 50         # dichtstbijzijnde station moet binnen deze afstand liggen
+BIAS_HOURS = 12     # verschil meting-model loopt in zoveel uur af naar nul
+
+
+def km(a, b, c, d):
+    p = math.pi / 180
+    x = (d - b) * p * math.cos((a + c) / 2 * p)
+    return 6371 * math.hypot(x, (c - a) * p)
+
+
+def station_obs(old, now):
+    """Gemeten temperatuur (1,5 m en 10 cm) van de KNMI-stations via de Buienradar-feed.
+    Per station en per uur bewaard over de runs heen, zodat de groei sinds de meting met echte waarden wordt gerekend."""
+    hist = {k: v for k, v in (old.get("obs") or {}).items()}
+    d = json.loads(get("https://data.buienradar.nl/2.0/feed/json"))
+    stations = {}
+    for st in d["actual"]["stationmeasurements"]:
+        t = st.get("temperature")
+        if t is None or st.get("lat") is None or not st.get("timestamp"):
+            continue
+        name = st["stationname"].replace("Meetstation ", "")
+        when = dt.datetime.fromisoformat(st["timestamp"][:19]).replace(tzinfo=AMS)
+        if now - when > dt.timedelta(hours=2):
+            continue
+        stations[name] = {"lat": st["lat"], "lon": st["lon"], "temp": t, "ground": st.get("groundtemperature"), "time": iso(when)}
+        hour = iso(when.replace(minute=0, second=0))
+        rows = hist.setdefault(name, [])
+        if rows and rows[-1][0] == hour:
+            rows[-1] = [hour, round((rows[-1][1] * rows[-1][3] + t) / (rows[-1][3] + 1), 1), st.get("groundtemperature"), rows[-1][3] + 1]
+        else:
+            rows.append([hour, t, st.get("groundtemperature"), 1])
+    for k in list(hist):
+        hist[k] = [r for r in hist[k] if now - parse_iso(r[0]) < dt.timedelta(hours=OBS_HOURS)]
+        if not hist[k]:
+            del hist[k]
+    return stations, hist
+
+
+def corrected(series, obs_rows, st, now):
+    """Modelreeks bijgesteld met metingen: verleden = gemeten uurtemperatuur, toekomst = model + afnemend verschil."""
+    if not st:
+        return series, None
+    by_hour = {r[0][:13]: r[1] for r in obs_rows or []}
+    model_now = min(series, key=lambda x: abs((x[0] - now).total_seconds()))[1] if series else None
+    bias = round(st["temp"] - model_now, 1) if model_now is not None else 0.0
+    out = []
+    for t, v in series:
+        if t <= now:
+            v = by_hour.get(iso(t)[:13], v)
+        else:
+            f = max(0.0, 1 - (t - now).total_seconds() / 3600 / BIAS_HOURS)
+            v = v + bias * f
+        out.append((t, v))
+    return out, {"model": model_now, "bias": bias, "hours_measured": sum(1 for t, _ in series if t <= now and iso(t)[:13] in by_hour)}
+
+
 def grow(h0, series, t0, t1):
     h, fdd, tmin = h0, 0.0, None
     for t, temp in series:
@@ -371,16 +428,27 @@ def build(prev=None, dearend=None):
     except Exception as e:
         errors["temperatuur"] = f"{type(e).__name__}: {e}"[:200]
         temps = {}
+    try:
+        stations, obs = station_obs(old, now)
+    except Exception as e:
+        errors["stations"] = f"{type(e).__name__}: {e}"[:200]
+        stations, obs = {}, old.get("obs") or {}
     for p in points:
         series = temps.get((round(p["lat"], 1), round(p["lon"], 1)))
         if not series:
             continue
         t0 = parse_iso(p["time"])
         base = p["min"]   # voorzichtig: de dunste plek telt
-        p["now_cm"], _, _ = grow(base, series, t0, now)
-        p["morning_cm"], p["fdd"], p["tmin"] = grow(base, series, t0, tgt)
+        near = min(((km(p["lat"], p["lon"], v["lat"], v["lon"]), n) for n, v in stations.items()), default=None)
+        st = stations[near[1]] if near and near[0] <= MAX_KM else None
+        fixed, corr = corrected(series, obs.get(near[1]) if st else None, st, now)
+        p["model_morning_cm"], _, _ = grow(base, series, t0, tgt)
+        p["now_cm"], _, _ = grow(base, fixed, t0, now)
+        p["morning_cm"], p["fdd"], p["tmin"] = grow(base, fixed, t0, tgt)
         p["night_gain"] = round(p["morning_cm"] - p["now_cm"], 1)
-    return {"updated": iso(now), "target": iso(tgt), "points": points, "measurements": ms[:200],
+        if st:
+            p["station"] = {"name": near[1], "km": round(near[0]), "temp": st["temp"], "ground": st["ground"], "time": st["time"], **corr}
+    return {"updated": iso(now), "target": iso(tgt), "points": points, "measurements": ms[:200], "obs": obs,
             "geocache": GEO, "seen": seen_articles, "errors": errors, "a": A_STEFAN,
             "sources": ["Weerwoord (forum)", "IJsclub Vlietland"] + (["Weerstation De Arend"] if dearend else []) + [n for n, _ in NEWS_FEEDS]}
 
@@ -389,5 +457,5 @@ if __name__ == "__main__":
     prev = json.load(open(sys.argv[1])) if len(sys.argv) > 1 else None
     r = build(prev, (prev or {}).get("schaatsnieuws"))
     for p in r["points"]:
-        print(f'{p["time"][:16]} {p["source"]:18} {p["place"][:28]:28} {p["min"]}-{p["max"]} cm  nu~{p.get("now_cm")}  ochtend~{p.get("morning_cm")}  | {p["quote"][:90]}')
+        print(f'{p["time"][:16]} {p["source"][:14]:14} {p["place"][:24]:24} {p["min"]}-{p["max"]} cm  nu~{p.get("now_cm")}  ochtend~{p.get("morning_cm")} (model {p.get("model_morning_cm")})  {p.get("station")}')
     print("fouten:", json.dumps(r["errors"], ensure_ascii=False))
