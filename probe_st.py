@@ -5,13 +5,17 @@ def get(u, h=None, data=None):
         r=urllib.request.urlopen(urllib.request.Request(u,headers={**UA,**(h or {})},data=data),timeout=25)
         b=r.read(); print("==",u,r.status,len(b),r.headers.get("content-type")); return b
     except Exception as e: print("==",u,"ERR",e); return b""
-def urls(t, pat): 
-    s=sorted(set(re.findall(r'''["'(]((?:https?:)?/[^"'()\s]*(?:%s)[^"'()\s]*)["')]'''%pat,t))); print(s[:40]); return s
+js=get("https://www.hetweeractueel.nl/wp-content/plugins/sln-hwa/js/hwa-live-data.js?ver=7.1.2").decode("utf8","replace")
+print(js[:2500])
+print(re.findall(r"action['\"]?\s*[:=]\s*['\"]([\w-]+)",js))
 t=get("https://www.hetweeractueel.nl/actueel-temperatuurkaartje/").decode("utf8","replace")
-urls(t,"json|api|ajax|data|\\.php|\\.txt|\\.csv|kaart|map")
-i=t.find("temperatuurkaart"); print(re.sub(r"\s+"," ",t[t.find("<main"):t.find("<main")+3000]))
-t=get("https://wow.knmi.nl/en/map/").decode("utf8","replace")
-urls(t,"json|api|\\.js|observ|map")
+for k in ["hwa_","ajax","stations","lat"]:
+    for m in list(re.finditer(k,t))[:3]: print(k,"::",re.sub(r"\s+"," ",t[max(0,m.start()-150):m.start()+250]))
 t=get("https://www.weerplaza.nl/nederland/temperatuur-10-cm/").decode("utf8","replace")
-urls(t,"infoplaza|wxdata|\\.png|\\.jpg|\\.webp|10cm|10-cm|api")
-for m in re.finditer(r"10 ?cm",t): print(re.sub(r"\s+"," ",t[max(0,m.start()-300):m.start()+300])); break
+print(re.findall(r'<script[^>]*src="([^"]+)"',t)[:30])
+for k in ["Temperatuur 10","grondtemp","10cm","wxdata","mapUrl","imageUrl","tiles"]:
+    for m in list(re.finditer(k,t,re.I))[:2]: print(k,"::",re.sub(r"\s+"," ",t[max(0,m.start()-200):m.start()+400]))
+t=get("https://wow.knmi.nl/en/map/").decode("utf8","replace")
+print(re.findall(r'<script[^>]*src="([^"]+)"',t)); print(re.findall(r'<iframe[^>]*src="([^"]+)"',t))
+for k in ["map","api"]:
+    for m in list(re.finditer(r'id="%s|%s\.'%(k,k),t))[:3]: print(k,"::",re.sub(r"\s+"," ",t[max(0,m.start()-150):m.start()+300]))
