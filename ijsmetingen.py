@@ -201,10 +201,23 @@ def src_dearend(out, dearend):
                            (dearend or {}).get("url") or "https://weerstationdearend.nl/schaatsnieuws/", "meting", "weerstation"))
 
 
-def src_weerwoord(out):
+def src_weerwoord(out, seen):
     raw = get("https://www.weerwoord.be/", 30)
+    budget = 8
     for post in weerwoord_posts(raw):
         txt = post["title"] + ". " + post["text"]
+        # de index toont maar het begin; bij ijsberichten de hele tekst ophalen (één keer per bericht)
+        if ICE_NEWS.search(txt) and "ww" + post["id"] not in seen and budget > 0:
+            budget -= 1
+            seen["ww" + post["id"]] = iso(dt.datetime.now(dt.timezone.utc))
+            try:
+                full = get("https://www.weerwoord.be/api/getmessage?messageid=" + post["id"], 20)
+                mc = re.search(r'<div id="message-content">(.*?)<a href="#" id="quote-message-div"', full, re.S)
+                if mc:
+                    txt = post["title"] + ". " + re.sub(r"https?://\S+", " ", text_of(mc.group(1)))
+                    post["full"] = txt
+            except Exception:
+                pass
         found = measurements_in(txt)
         if not found:
             continue
@@ -329,7 +342,7 @@ def build(prev=None, dearend=None):
     GEO.update(old.get("geocache") or {})
     seen_articles = {u: t for u, t in (old.get("seen") or {}).items() if now - parse_iso(t) < dt.timedelta(days=4)}
     found = []
-    for name, fn, args in (("Weerwoord", src_weerwoord, ()), ("IJsclub Vlietland", src_vlietland, ()),
+    for name, fn, args in (("Weerwoord", src_weerwoord, (seen_articles,)), ("IJsclub Vlietland", src_vlietland, ()),
                            ("De Arend", src_dearend, (dearend,)), ("nieuws", src_news, (seen_articles,))):
         try:
             fn(found, *args)

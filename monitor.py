@@ -836,6 +836,12 @@ def main():
         errors["ijskaart"] = f"{type(e).__name__}: {e}"[:300]
         data["ijskaart"] = (prev or {}).get("ijskaart")
     data["alerts"] = alerts(data, prev)
+    if prev and (prev.get("ijskaart") or {}).get("measurements") is not None and data.get("ijskaart"):
+        oldk = {(m["url"], m["place"], m["min"], m["max"]) for m in prev["ijskaart"]["measurements"]}
+        new = [m for m in data["ijskaart"]["measurements"] if (m["url"], m["place"], m["min"], m["max"]) not in oldk]
+        for m in new[:3]:
+            val = (f'{m["min"]:g}' if m["min"] == m["max"] else f'{m["min"]:g}-{m["max"]:g}').replace(".", ",")
+            data["alerts"].append(f'Nieuwe ijsmeting: {m["place"]} {val} cm ({m["source"]})')
     if prev and prev.get("summary"):
         data["summary"] = prev["summary"]   # wordt door de geplande taak vernieuwd
     json.dump(data, open(outp, "w"), ensure_ascii=False, indent=1)
