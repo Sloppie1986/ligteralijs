@@ -213,6 +213,32 @@ footer ul{padding-left:1.1em}
 .more{margin-top:10px}
 .more summary{cursor:pointer;color:var(--muted);font-size:.85rem}
 .more .note{margin-top:6px}
+
+/* samen: metingen doorgeven en forum */
+.samenbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 12px}
+.samenbar #repopen{font-size:.95rem;padding:8px 16px;background:var(--accent);color:#fff}
+.samen-auth{font-size:.85rem}
+.linkbtn{background:none;padding:0;border-radius:0;text-decoration:underline;color:var(--accent);font-weight:600}
+.pickhint{background:var(--accent-soft);border-radius:10px;padding:8px 12px;margin:0 0 10px;font-weight:600}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--solid);color:var(--fg);padding:0;width:min(440px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
+dialog::backdrop{background:rgba(5,20,30,.45)}
+.dform{display:flex;flex-direction:column;gap:10px;padding:18px}
+.dform label,.sform label{display:flex;flex-direction:column;gap:4px;font-size:.88rem;font-weight:600}
+input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.srow{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.fileb{flex-direction:row!important;align-items:center;font-weight:600;color:var(--accent);cursor:pointer}
+.fileb input{font-size:.8rem;border:0;background:none;padding:0;width:auto;max-width:180px}
+.sform{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.samenforum{display:flex;flex-direction:column;gap:8px}
+.sthread{border:1px solid var(--line);border-radius:10px;background:var(--solid);padding:10px 12px}
+.sthread summary{cursor:pointer}
+.sthread .sform{margin:10px 0 0}
+.spost{border-top:1px solid var(--line);padding:8px 0 0;margin-top:8px;font-size:.92rem}
+.spost p{margin:2px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.spost.hid{opacity:.5}
+.rphoto{display:block;max-width:100%;max-height:260px;border-radius:8px;margin:6px 0}
+.leaflet-popup-content .rphoto{max-height:180px}
+.modbtns{display:flex;gap:12px;margin-top:4px;font-size:.8rem}
 /* telefoon: één tab tegelijk, vaste tabbalk onderin */
 .tabbar{display:none}
 .mini{display:none}
@@ -269,6 +295,8 @@ footer ul{padding-left:1.1em}
       <section class="panel" aria-labelledby="h-map">
         <header><h2 id="h-map">Gemeten ijs in Nederland</h2><span class="muted" id="mapmeta"></span></header>
         <p class="mwarn"><strong>Betreed natuurijs alleen bij minimaal 8 cm en na vrijgave door de ijsmeester of ijsvereniging.</strong> De waarden zijn meldingen van derden en schattingen; de werkelijke ijsdikte verschilt per plek. Rond 4,5 cm kan stevig, helder ijs één schaatser dragen, maar dat blijft een eigen afweging, voor eigen risico. Bij stroming, riet, kwel en bruggen is het ijs dunner.</p>
+        <div class="samenbar" data-samen hidden><button id="repopen" type="button">📏 Meting doorgeven</button><span class="samen-auth"></span></div>
+        <p id="pickhint" class="pickhint" hidden>Tik op de kaart op de plek waar je gemeten hebt.</p>
         <div class="mapgrid">
           <div>
             <div id="icemap" role="region" aria-label="Kaart met gemeten ijsdikte"></div>
@@ -341,6 +369,15 @@ footer ul{padding-left:1.1em}
     </div>
 
     <div class="col forumcol" data-tab="forum">
+      <section class="panel" data-samen hidden aria-labelledby="h-samen">
+        <header><h2 id="h-samen">Schaatsforum</h2><span class="samen-auth"></span></header>
+        <form id="newthread" class="sform">
+          <input name="title" maxlength="120" placeholder="Onderwerp" aria-label="Onderwerp">
+          <textarea name="body" rows="3" maxlength="4000" required placeholder="Wat wil je delen?" aria-label="Bericht"></textarea>
+          <div class="srow"><label class="fileb">📷 Foto<input type="file" name="photo" accept="image/*"></label><button type="submit">Nieuwe draad</button></div>
+        </form>
+        <div id="samenforum" class="samenforum"></div>
+      </section>
       <section class="panel" aria-labelledby="h-forum">
         <header><h2 id="h-forum">Noodweer forum</h2><span class="muted" id="forummeta"></span></header>
         <div class="fhead" id="forumhead" style="margin-bottom:10px"></div>
@@ -354,6 +391,33 @@ footer ul{padding-left:1.1em}
     <p>Bronnen: KNMI, Open-Meteo, MET Norway, Buienradar, MeteoAlarm, NoodweerBenelux, Wintersportweerman, Kai Zorn, Sneeuwhoogte.nl, Weerstation De Arend, X, Weerwoord, IJsclub Vlietland, NOS, regionale omroepen, PDOK, © OpenStreetMap. Elk kwartier bijgewerkt.</p>
   </footer>
 </div>
+
+
+<dialog id="logindlg" aria-labelledby="h-login">
+  <form id="loginform" class="dform">
+    <h2 id="h-login">Inloggen</h2>
+    <p class="muted">Je krijgt een link per mail, zonder wachtwoord. Je naam staat bij je berichten en metingen; je e-mailadres is niet zichtbaar voor anderen.</p>
+    <label>Naam<input name="name" required maxlength="40" autocomplete="nickname"></label>
+    <label>E-mail<input name="email" type="email" required autocomplete="email"></label>
+    <p id="loginmsg" class="muted" role="status"></p>
+    <div class="srow"><button type="button" id="logincancel" class="linkbtn">Annuleren</button><button type="submit">Stuur inloglink</button></div>
+  </form>
+</dialog>
+<dialog id="repdlg" aria-labelledby="h-rep">
+  <form id="reportform" class="dform">
+    <h2 id="h-rep">Meting doorgeven</h2>
+    <label>Gemeten ijsdikte (cm)<input name="cm" type="number" inputmode="decimal" min="0.2" max="40" step="0.1" required></label>
+    <div><div class="srow"><button type="button" id="repgps">📍 Mijn locatie</button><button type="button" id="repmap">🗺️ Kies op kaart</button></div><p id="repwhere" class="muted" role="status"></p></div>
+    <label>Plaats of water (optioneel)<input name="place" maxlength="80" placeholder="bijv. Loosdrechtse Plassen, Het Hol"></label>
+    <label>Gemeten op<input name="when" type="datetime-local" required></label>
+    <label>Opmerking (optioneel)<textarea name="note" rows="2" maxlength="500" placeholder="Hoe gemeten, kwaliteit van het ijs, sneeuw erop?"></textarea></label>
+    <label class="fileb">📷 Foto (optioneel)<input type="file" name="photo" accept="image/*"></label>
+    <label>Je naam<input name="name" required maxlength="40"></label>
+    <p class="muted" style="font-size:.8rem">Je meting en foto zijn openbaar zichtbaar. Een meting is een momentopname van één plek en geen vrijgave van het ijs.</p>
+    <p id="repmsg" class="muted" role="status"></p>
+    <div class="srow"><button type="button" id="repcancel" class="linkbtn">Annuleren</button><button type="submit">Versturen</button></div>
+  </form>
+</dialog>
 
 <nav class="tabbar" aria-label="Onderdelen">
   <a href="#overzicht" data-go="overzicht" aria-current="page"><svg viewBox="0 0 24 24"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7"/><path d="M9 3.5l3 2 3-2M9 20.5l3-2 3 2"/></svg>Weer &amp; ijs</a>
@@ -759,6 +823,7 @@ footer ul{padding-left:1.1em}
   };
   function renderMap() {
     const k = data && data.ijskaart;
+    window._icedata = data;
     if (!k) return;
     const pts = (k.points || []).slice().sort((a, b) => (b.morning_cm ?? b.cm) - (a.morning_cm ?? a.cm));
     const tgtD = k.target ? new Date(k.target) : null;
@@ -783,6 +848,7 @@ footer ul{padding-left:1.1em}
         p.morning_cm != null ? el("div", {text: `Prognose ${tgt}: ~${nl1(p.morning_cm)} cm`}) : null,
         stLine(p) ? el("div", {cls: "pst", text: stLine(p)}) : null,
         el("q", {text: p.quote}),
+        window.samenPopupExtras ? window.samenPopupExtras(p) : null,
         u ? el("a", {href: u, target: "_blank", rel: "noopener", text: p.source + (p.who ? " · " + p.who : "")}) : el("span", {text: p.source}));
       return d;
     };
@@ -800,7 +866,7 @@ footer ul{padding-left:1.1em}
           html: `<div class="mpin"><b>${nl1(p.min)}</b><span class="lvl${LVL(v)}">${v == null ? "?" : nl1(v)}</span></div>`});
         const m = L.marker([p.lat, p.lon], {icon, title: `${p.place}: ${meas(p)} cm gemeten, prognose ${v == null ? "onbekend" : nl1(v) + " cm"}`}).bindPopup(() => popup(p));
         m.addTo(window._icelayer);
-        window._icemarkers[p.place + "|" + p.source] = m;
+        window._icemarkers[p.id || p.place + "|" + p.source] = m;
       }
     }
     const list = $("mlist"); list.replaceChildren();
@@ -816,11 +882,12 @@ footer ul{padding-left:1.1em}
           stLine(p) ? el("div", {cls: "ms pst", text: stLine(p)}) : null]),
         el("q", {text: p.quote})]);
       row.onclick = () => {
-        const m = (window._icemarkers || {})[p.place + "|" + p.source];
+        const m = (window._icemarkers || {})[p.id || p.place + "|" + p.source];
         if (m && window._icemap) { if (matchMedia("(max-width:1100px)").matches) $("icemap").scrollIntoView({behavior: "smooth"}); window._icemap.setView(m.getLatLng(), 11); m.openPopup(); }
       };
       list.append(row);
     }
+    window.dispatchEvent(new Event("icemap-rendered"));
   }
 
   const _render = render;
@@ -884,6 +951,7 @@ footer ul{padding-left:1.1em}
 })();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" onload="window.dispatchEvent(new Event('leaflet-ready'))"></script>
+<script src="samen.js" defer></script>
 
 </body>
 </html>
