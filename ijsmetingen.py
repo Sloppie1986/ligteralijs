@@ -512,6 +512,7 @@ def build(prev=None, dearend=None):
         base = p["min"]   # voorzichtig: de dunste plek telt
         near = min(((km(p["lat"], p["lon"], v["lat"], v["lon"]), n) for n, v in stations.items()), default=None)
         st = stations[near[1]] if near and near[0] <= MAX_KM else None
+        rows = obs.get(near[1]) if st else None
         # een goedgekeurd amateurstation vlakbij gaat voor als het dichterbij ligt dan het KNMI-station
         wnear = min(((km(p["lat"], p["lon"], v["lat"], v["lon"]), n) for n, v in wow.items()), default=None)
         if wnear and wnear[0] <= WOW_KM and (not near or wnear[0] < near[0]):
@@ -519,7 +520,9 @@ def build(prev=None, dearend=None):
             if wnear[1] not in used_wow:
                 add_obs(obs, wnear[1], st)
                 used_wow.add(wnear[1])
-        fixed, corr = corrected(series, obs.get(near[1]) if st else None, st, now)
+            # uren zonder eigen meting van het amateurstation vullen met het KNMI-station
+            rows = (rows or []) + obs[wnear[1]]
+        fixed, corr = corrected(series, rows, st, now)
         p["model_morning_cm"], _, _ = grow(base, series, t0, tgt)
         p["now_cm"], _, _ = grow(base, fixed, t0, now)
         p["morning_cm"], p["fdd"], p["tmin"] = grow(base, fixed, t0, tgt)
