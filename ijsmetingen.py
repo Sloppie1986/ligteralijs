@@ -260,6 +260,31 @@ def weerwoord_posts(raw):
     return posts
 
 
+def src_app(out):
+    """Metingen die gebruikers zelf in de app doorgeven (Supabase, alleen lezen met de openbare sleutel)."""
+    try:
+        cfg = json.load(open("site/config.json"))
+    except Exception:
+        return
+    url, key = cfg.get("supabase_url"), cfg.get("supabase_key")
+    if not url or not key:
+        return
+    since = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=KEEP_HOURS)).isoformat().replace("+00:00", "Z")
+    q = urllib.parse.urlencode({"select": "id,measured_at,name,cm,lat,lon,place,note,photo", "hidden": "eq.false",
+                                "measured_at": "gte." + since, "order": "measured_at.desc", "limit": "300"})
+    req = urllib.request.Request(url.rstrip("/") + "/rest/v1/reports?" + q, headers={**UA, "apikey": key, "Authorization": "Bearer " + key})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        rows = json.loads(r.read())
+    for r in rows:
+        when = parse_iso(r["measured_at"])
+        place = r.get("place") or "Eigen meting"
+        e = m_entry("Gemeld in de app", place, [r["lat"], r["lon"], place], float(r["cm"]), float(r["cm"]), when,
+                    r.get("note") or "", "https://sloppie1986.github.io/ligteralijs/#kaart", "gebruiker", r.get("name"))
+        e["id"] = "sb:" + r["id"]
+        e["photo"] = r.get("photo")
+        out.append(e)
+
+
 ICE_NEWS = re.compile(r"\bijs|schaats|natuurijs|ijsbaan|ijsclub|ijsmeester", re.I)
 
 
@@ -400,23 +425,25 @@ def build(prev=None, dearend=None):
     seen_articles = {u: t for u, t in (old.get("seen") or {}).items() if now - parse_iso(t) < dt.timedelta(days=4)}
     found = []
     for name, fn, args in (("Weerwoord", src_weerwoord, (seen_articles,)), ("IJsclub Vlietland", src_vlietland, ()),
-                           ("De Arend", src_dearend, (dearend,)), ("nieuws", src_news, (seen_articles,))):
+                           ("De Arend", src_dearend, (dearend,)), ("nieuws", src_news, (seen_articles,)), ("app", src_app, ())):
         try:
             fn(found, *args)
         except Exception as e:
             errors[name] = f"{type(e).__name__}: {e}"[:200]
     # samenvoegen met eerdere runs (forumindex en feeds schuiven door)
     allm = {}
-    for m in (old.get("measurements") or []) + found:
+    fresh_app = {m["id"] for m in found if m.get("id")}
+    olds = [m for m in (old.get("measurements") or []) if not (str(m.get("id", "")).startswith("sb:") and "app" not in errors and m["id"] not in fresh_app)]
+    for m in olds + found:
         if now - parse_iso(m["time"]) > dt.timedelta(hours=KEEP_HOURS) or parse_iso(m["time"]) > now + dt.timedelta(hours=1):
             continue
-        key = f'{m["url"]}|{m["place"]}|{m["min"]}|{m["max"]}'
+        key = m.get("id") or f'{m["url"]}|{m["place"]}|{m["min"]}|{m["max"]}'
         allm[key] = m
     ms = sorted(allm.values(), key=lambda m: m["time"], reverse=True)
     # per plek alleen de nieuwste meting op de kaart, de rest als geschiedenis
     points = {}
     for m in ms:
-        k = f'{m["place"].lower()}|{m["source"]}'
+        k = m.get("id") or f'{m["place"].lower()}|{m["source"]}'
         if k not in points:
             points[k] = dict(m, history=[])
         elif len(points[k]["history"]) < 5:
