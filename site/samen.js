@@ -28,13 +28,25 @@
       s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
       s.onload = ok; s.onerror = bad; document.head.append(s);
     });
+    // inloglink kwam eerder terug als "#kaart#access_token=…"; dat kan supabase-js niet lezen
+    const h = location.hash, at = h.indexOf("access_token=");
+    const fromLink = at > 0 || /error_description=/.test(h);
+    if (at > 1) history.replaceState(null, "", location.pathname + location.search + "#" + h.slice(at));
     sb = window.supabase.createClient(cfg.supabase_url, cfg.supabase_key);
     document.querySelectorAll("[data-samen]").forEach(n => n.hidden = false);
     sb.auth.onAuthStateChange((_e, session) => { user = session ? session.user : null; checkAdmin().then(() => { renderAuth(); loadForum(); }); });
     const {data} = await sb.auth.getSession();
     user = data.session ? data.session.user : null;
     await checkAdmin();
+    syncPrefsFromAccount();
     renderAuth();
+    wirePrefs();
+    if (fromLink) {
+      // tokens uit de adresbalk halen en naar het forum gaan
+      history.replaceState(null, "", location.pathname + location.search + "#" + (getPrefs().tab || "forum"));
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+      if (!user) alert("Deze inloglink is verlopen of al gebruikt. Vraag een nieuwe aan via 'Inloggen'.");
+    }
     loadReports(); loadForum();
     setInterval(loadReports, 5 * 60e3); setInterval(loadForum, 2 * 60e3);
     window.addEventListener("icemap-rendered", drawReports);
@@ -55,13 +67,86 @@
     for (const box of document.querySelectorAll(".samen-auth")) {
       box.replaceChildren();
       if (user) {
-        box.append(el("span", {cls: "muted", text: `Ingelogd als ${myName() || user.email}${admin ? " (beheer)" : ""} · `}),
+        box.append(el("span", {cls: "authpill", text: `✓ Ingelogd als ${myName() || user.email}${admin ? " · beheerder" : ""}`}),
+          el("button", {type: "button", cls: "linkbtn", text: "⚙ voorkeuren", onclick: openPrefs}),
           el("button", {type: "button", cls: "linkbtn", text: "uitloggen", onclick: () => sb.auth.signOut()}));
       } else {
-        box.append(el("button", {type: "button", cls: "linkbtn", text: "Inloggen om mee te doen", onclick: () => $("logindlg").showModal()}));
+        box.append(el("button", {type: "button", cls: "linkbtn", text: "Inloggen om mee te doen", onclick: () => $("logindlg").showModal()}),
+          el("button", {type: "button", cls: "linkbtn", text: "⚙ voorkeuren", onclick: openPrefs}));
       }
     }
   }
+  // ---------------- profielfoto
+  const myAvatar = () => (user && user.user_metadata && user.user_metadata.avatar) || null;
+  function avatarEl(path, name) {
+    const u = photoUrl(path);
+    if (u) return el("img", {src: u, alt: "", cls: "avatar", loading: "lazy"});
+    return el("span", {cls: "avatar ini", "aria-hidden": "true", text: (name || "?").trim().charAt(0).toUpperCase()});
+  }
+  // nieuwe kolom 'avatar' bestaat pas na het bijgewerkte database-script; zonder die kolom gewoon zonder plaatsen
+  async function insertRow(table, row) {
+    let {error} = await sb.from(table).insert(row);
+    if (error && row.avatar !== undefined && /avatar/.test(error.message || "")) ({error} = await sb.from(table).insert((({avatar, ...r}) => r)(row)));
+    return {error};
+  }
+
+  // ---------------- persoonlijke voorkeuren
+  const getPrefs = () => { try { return JSON.parse(store.get("prefs") || "{}"); } catch (e) { return {}; } };
+  const setPrefs = p => store.set("prefs", JSON.stringify(p));
+  function syncPrefsFromAccount() {
+    const p = user && user.user_metadata && user.user_metadata.prefs;
+    if (p && typeof p === "object") setPrefs(Object.assign(getPrefs(), p));
+  }
+  function openPrefs() {
+    const f = $("prefform"), p = getPrefs();
+    f.name.value = myName(); f.home.value = (p.home && p.home.name) || ""; f.zoom.value = String((p.home && p.home.zoom) || 10);
+    f.tab.value = p.tab || ""; $("prefmsg").textContent = "";
+    $("prefavatar").replaceChildren(avatarEl(myAvatar(), myName()));
+    $("prefphoto").hidden = !user;
+    $("prefdlg").showModal();
+  }
+  async function geocodeHome(q) {
+    const u = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?rows=1&fq=type:(woonplaats OR gemeente)&q=" + encodeURIComponent(q);
+    const d = await (await fetch(u)).json();
+    const doc = d.response && d.response.docs && d.response.docs[0];
+    const m = doc && /POINT\(([\d.]+) ([\d.]+)\)/.exec(doc.centroide_ll || "");
+    return m ? {name: doc.woonplaatsnaam || doc.weergavenaam, lat: +m[2], lon: +m[1]} : null;
+  }
+  function wirePrefs() {
+    const f = $("prefform");
+    $("prefcancel").onclick = () => $("prefdlg").close();
+    f.onsubmit = async e => {
+      e.preventDefault();
+      const p = getPrefs(), msg = $("prefmsg");
+      p.tab = f.tab.value;
+      const q = f.home.value.trim();
+      if (!q) delete p.home;
+      else if (!p.home || p.home.name !== q) {
+        msg.textContent = "Plek zoeken…";
+        const h = await geocodeHome(q).catch(() => null);
+        if (!h) { msg.textContent = "Die plaats vind ik niet. Probeer een woonplaats in Nederland."; return; }
+        p.home = h; f.home.value = h.name;
+      }
+      if (p.home) p.home.zoom = +f.zoom.value;
+      setPrefs(p);
+      const name = f.name.value.trim();
+      if (name) store.set("samen-name", name);
+      let avatar;
+      if (user && f.avatar.files[0]) {
+        msg.textContent = "Foto uploaden…";
+        try { avatar = await upload(f.avatar.files[0], 256); } catch (err) { msg.textContent = "Foto uploaden lukte niet: " + (err.message || err); return; }
+      }
+      if (user) {
+        const {data} = await sb.auth.updateUser({data: {prefs: p, ...(name ? {name} : {}), ...(avatar ? {avatar} : {})}}).catch(() => ({}));
+        if (data && data.user) user = data.user;
+      }
+      f.avatar.value = "";
+      $("prefdlg").close();
+      renderAuth();
+      if (window._icemap) window.iceHome(window._icemap);
+    };
+  }
+
   async function needLogin() {
     if (user) return true;
     $("logindlg").showModal();
@@ -69,18 +154,18 @@
   }
 
   // ---------------- foto verkleinen en uploaden
-  async function shrink(file) {
+  async function shrink(file, max = 1600) {
     const img = await createImageBitmap(file).catch(() => null);
     if (!img) throw new Error("Deze foto kan ik niet lezen.");
-    const s = Math.min(1, 1600 / Math.max(img.width, img.height));
+    const s = Math.min(1, max / Math.max(img.width, img.height));
     const c = document.createElement("canvas");
     c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
     c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
     return await new Promise(ok => c.toBlob(ok, "image/jpeg", 0.82));
   }
-  async function upload(file) {
+  async function upload(file, max = 1600) {
     if (!file) return null;
-    const blob = await shrink(file);
+    const blob = await shrink(file, max);
     const path = `${user.id}/${crypto.randomUUID()}.jpg`;
     const {error} = await sb.storage.from("fotos").upload(path, blob, {contentType: "image/jpeg"});
     if (error) throw error;
@@ -188,7 +273,7 @@
   function postEl(p) {
     const pu = photoUrl(p.photo);
     return el("div", {cls: "spost" + (p.hidden ? " hid" : "")}, [
-      el("div", {cls: "muted", text: `${p.name} · ${when(p.created_at)}`}),
+      el("div", {cls: "muted pby"}, [avatarEl(p.avatar, p.name), el("strong", {text: p.name}), document.createTextNode(` · ${when(p.created_at)}`)]),
       el("p", {text: p.body}),
       pu ? el("a", {href: pu, target: "_blank", rel: "noopener"}, [el("img", {src: pu, alt: "Foto bij het bericht", cls: "rphoto", loading: "lazy"})]) : null,
       modButtons("posts", p, loadForum)]);
@@ -200,7 +285,8 @@
     try {
       const photo = await upload(f.photo.files[0]);
       const row = {name: myName(), body: f.body.value.trim(), parent_id: parent || null, title: f.title ? f.title.value.trim() || null : null, photo};
-      const {error} = await sb.from("posts").insert(row);
+      if (myAvatar()) row.avatar = myAvatar();
+      const {error} = await insertRow("posts", row);
       if (error) throw error;
       f.reset();
       if (parent) open.add(parent);
@@ -219,7 +305,7 @@
       const name = lf.name.value.trim();
       store.set("samen-name", name);
       if (user) { await saveName(name); $("logindlg").close(); renderAuth(); return; }
-      const {error} = await sb.auth.signInWithOtp({email: lf.email.value.trim(), options: {emailRedirectTo: location.href.split("#")[0] + "#kaart", data: {name}}});
+      const {error} = await sb.auth.signInWithOtp({email: lf.email.value.trim(), options: {emailRedirectTo: location.href.split("#")[0], data: {name}}});
       $("loginmsg").textContent = error ? "Dat lukte niet: " + error.message : "Check je mail en tik op de link om in te loggen.";
     };
     $("logincancel").onclick = () => $("logindlg").close();
@@ -270,7 +356,8 @@
         const row = {name: rf.name.value.trim(), cm: +String(rf.cm.value).replace(",", "."), lat: picked[0], lon: picked[1],
                      place: rf.place.value.trim() || null, note: rf.note.value.trim() || null, photo,
                      measured_at: new Date(rf.when.value).toISOString()};
-        const {error} = await sb.from("reports").insert(row);
+        if (myAvatar()) row.avatar = myAvatar();
+        const {error} = await insertRow("reports", row);
         if (error) throw error;
         rf.reset(); picked = null; $("repwhere").textContent = ""; $("repmsg").textContent = "";
         dlg.close();

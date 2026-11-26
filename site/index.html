@@ -222,7 +222,11 @@ footer ul{padding-left:1.1em}
 /* samen: metingen doorgeven en forum */
 .samenbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 12px}
 .samenbar #repopen{font-size:.95rem;padding:8px 16px;background:var(--accent);color:#fff}
-.samen-auth{font-size:.85rem}
+.samen-auth{font-size:.85rem;display:inline-flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;flex:none;display:inline-grid;place-items:center;background:var(--accent);color:#fff;font:700 13px/1 var(--f-body)}
+.pby{display:flex;align-items:center;gap:7px}.pby strong{color:inherit}
+.prefphoto{display:flex;align-items:center;gap:12px}.prefphoto .avatar{width:48px;height:48px;font-size:20px}
+.authpill{background:#1f7a4d;color:#fff;border-radius:999px;padding:4px 10px;font-weight:700;font-size:.8rem}
 .linkbtn{background:none;padding:0;border-radius:0;text-decoration:underline;color:var(--accent);font-weight:600}
 .pickhint{background:var(--accent-soft);border-radius:10px;padding:8px 12px;margin:0 0 10px;font-weight:600}
 dialog{border:1px solid var(--line);border-radius:14px;background:var(--solid);color:var(--fg);padding:0;width:min(440px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
@@ -415,10 +419,23 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
   <form id="loginform" class="dform">
     <h2 id="h-login">Inloggen</h2>
     <p class="muted">Je krijgt een link per mail, zonder wachtwoord. Je naam staat bij je berichten en metingen; je e-mailadres is niet zichtbaar voor anderen.</p>
-    <label>Naam<input name="name" required maxlength="40" autocomplete="nickname"></label>
+    <label>Bijnaam<input name="name" required maxlength="40" autocomplete="nickname"></label>
     <label>E-mail<input name="email" type="email" required autocomplete="email"></label>
     <p id="loginmsg" class="muted" role="status"></p>
     <div class="srow"><button type="button" id="logincancel" class="linkbtn">Annuleren</button><button type="submit">Stuur inloglink</button></div>
+  </form>
+</dialog>
+<dialog id="prefdlg" aria-labelledby="h-pref">
+  <form id="prefform" class="dform">
+    <h2 id="h-pref">Mijn voorkeuren</h2>
+    <p class="muted">Wordt op dit toestel bewaard, en bij je account als je bent ingelogd.</p>
+    <label>Bijnaam (bij je berichten en metingen)<input name="name" maxlength="40" autocomplete="nickname"></label>
+    <div id="prefphoto" class="prefphoto"><span id="prefavatar"></span><label class="fileb">📷 Profielfoto kiezen<input type="file" name="avatar" accept="image/*"></label></div>
+    <label>Mijn plek (de ijskaart opent hier)<input name="home" maxlength="60" placeholder="bijv. Loosdrecht" autocomplete="address-level2"></label>
+    <label>Hoe ver ingezoomd<select name="zoom"><option value="12">Mijn dorp of stad</option><option value="10" selected>Omgeving (± 20 km)</option><option value="9">Regio (± 50 km)</option></select></label>
+    <label>App opent op<select name="tab"><option value="">Weer &amp; ijs</option><option value="kaart">IJskaart</option><option value="berichten">Berichten</option><option value="forum">Forum</option></select></label>
+    <p id="prefmsg" class="muted" role="status"></p>
+    <div class="srow"><button type="button" id="prefcancel" class="linkbtn">Annuleren</button><button type="submit">Opslaan</button></div>
   </form>
 </dialog>
 <dialog id="repdlg" aria-labelledby="h-rep">
@@ -812,10 +829,17 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
   }
 
   const NL_BOUNDS = [[50.85, 3.6], [53.45, 7.05]];
+  const prefs = () => { try { return JSON.parse(localStorage.getItem("prefs") || "{}"); } catch (e) { return {}; } };
+  // beginbeeld van de kaart: eigen plek uit de voorkeuren, anders heel Nederland
+  window.iceHome = m => {
+    const h = prefs().home;
+    if (h && h.lat) m.setView([h.lat, h.lon], h.zoom || 10, {animate: false}); else m.fitBounds(NL_BOUNDS, {padding: [0, 0], animate: false});
+  };
+  if (!location.hash && prefs().tab) history.replaceState(null, "", "#" + prefs().tab);
   function fitIcemap() {
     const m = window._icemap; if (!m) return;
     m.invalidateSize();
-    if (window._icefit && $("icemap").offsetHeight) { m.fitBounds(NL_BOUNDS, {padding: [0, 0], animate: false}); window._icefit = false; }
+    if (window._icefit && $("icemap").offsetHeight) { window.iceHome(m); window._icefit = false; }
   }
   window.addEventListener("resize", () => setTimeout(fitIcemap, 100));
   const TABS = ["overzicht", "kaart", "berichten", "forum"];
@@ -879,7 +903,8 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     };
     if (window.L) {
       if (!window._icemap) {
-        window._icemap = L.map("icemap", {zoomSnap: 0.25, zoomDelta: 0.5}).fitBounds(NL_BOUNDS, {padding: [0, 0]});
+        window._icemap = L.map("icemap", {zoomSnap: 0.25, zoomDelta: 0.5});
+        window.iceHome(window._icemap);
         // kaart kan in een verborgen tab zijn aangemaakt (hoogte 0): dan later alsnog op Nederland zetten
         window._icefit = !$("icemap").offsetHeight;
         window._icemap.on("dragstart", () => { window._icefit = false; });
