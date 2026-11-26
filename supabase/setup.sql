@@ -79,3 +79,7 @@ create policy "fotos eigen of beheer verwijderen" on storage.objects for delete 
 
 -- ---------- jezelf beheerder maken: eerst één keer inloggen in de app, dan dit draaien met jouw e-mailadres
 -- insert into public.admins select id from auth.users where email = 'JOUW-EMAIL' on conflict do nothing;
+
+-- ---------- profielfoto (toegevoegd 26-11): pad naar de avatar bij elk bericht en elke meting
+alter table public.posts add column if not exists avatar text check (char_length(avatar) <= 200);
+alter table public.reports add column if not exists avatar text check (char_length(avatar) <= 200);
