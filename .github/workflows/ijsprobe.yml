@@ -22,3 +22,5 @@ jobs:
           true
           curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/data.json -o prev.json || echo {} > prev.json
           python3 ijsmetingen.py prev.json
+          python3 monitor.py out.json prev.json | cut -c1-1500
+          python3 -c "import json;d=json.load(open('out.json'));k=d['ijskaart'];print(len(k['points']),'punten',d['alerts'][:5])"
