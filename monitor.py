@@ -397,6 +397,44 @@ def dearend():
             "url": "https://weerstationdearend.nl/"}
 
 
+MAANDEN = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"]
+
+
+@safe("schaatsnieuws")
+def schaatsnieuws():
+    """Gemeten ijsdikte uit 'Schaatsnieuws' van Weerstation De Arend (Kortenhoef), plus de KNMI-ijspluim."""
+    url = "https://weerstationdearend.nl/schaatsnieuws/"
+    raw = get(url)
+    t = text_of(raw)
+    body = t.split("Schaatsnieuws", 3)[-1]
+    now = dt.datetime.now(TZ)
+    # blokken per datum ("26 november ...")
+    parts = re.split(r"(?m)^\s*(\d{1,2}) (" + "|".join(MAANDEN) + r")\b", body)
+    measurements = []
+    for i in range(1, len(parts) - 2, 3):
+        day, month, block = int(parts[i]), MAANDEN.index(parts[i + 1]) + 1, parts[i + 2]
+        year = now.year - (1 if month > now.month else 0)
+        cur_time = "00:00"
+        for line in block.split("\n"):
+            em = re.search(r"Edit:?\s*(\d{1,2})\s*[:.]\s*(\d{2})", line)
+            if em:
+                cur_time = f"{int(em.group(1)):02d}:{em.group(2)}"
+            for sent in re.split(r"(?<=[.!?])\s+", line):
+                cm = re.search(r"(\d+(?:[.,]\d+)?)\s*cm", sent)
+                if not cm or not re.search(r"ijs|dik|aangegroeid|sloot", sent, re.I) or re.search(r"staan|aanbevolen|veilig", sent, re.I):
+                    continue
+                # bij "van 1 naar 2,1 cm" telt het laatste getal
+                nums = re.findall(r"(\d+(?:[.,]\d+)?)\s*cm", sent)
+                measurements.append({"cm": float(nums[-1].replace(",", ".")), "text": sent.strip(),
+                                     "time": f"{year}-{month:02d}-{day:02d}T{cur_time}"})
+    latest = max(measurements, key=lambda m: m["time"]) if measurements else None
+    knmi = re.findall(r"https://cdn\.knmi\.nl/[^\"' ]+PLUIM_(\d+)_IJS\.png", raw)
+    pluim = "https://cdn.knmi.nl/knmi/map/page/weer/waarschuwingen_verwachtingen/extra/PLUIM_06260_IJS.png"
+    return {"url": url, "latest": latest, "history": sorted(measurements, key=lambda m: m["time"])[-8:],
+            "knmi_pluim_src": pluim if "06260" in knmi or not knmi else pluim,
+            "knmi_url": "https://www.knmi.nl/nederland-nu/weer/waarschuwingen-en-verwachtingen/extra/ijsdikte-watertemperatuur"}
+
+
 @safe("sneeuwhoogte")
 def sneeuwhoogte():
     raw = get("https://www.sneeuwhoogte.nl/")
@@ -464,6 +502,7 @@ def ice_ensemble():
             "spread": round(max(means) - min(means), 1),
             "models": [names[m] for m in full],
             "per_model": {names[m]: round(x[2], 1) for m, x in zip(full, stats)},
+            "min_per_model": {names[m]: round(x[0], 1) for m, x in zip(full, stats)},
         }
     return out
 
@@ -499,7 +538,7 @@ def ice_model(fc, prev=None, ens=None):
         row = {"date": day, "tmin": tmin, "tmax": tmax, "tmean": tmean,
                "fdd": round(s, 1), "cm": cm, "forecast": day >= today}
         if day in (ens or {}) and day >= today:
-            row.update({k: ens[day][k] for k in ("spread", "models", "per_model")})
+            row.update({k: ens[day][k] for k in ("spread", "models", "per_model", "min_per_model")})
         rows.append(row)
     def level(cm):
         if cm < 2: return 0
@@ -755,7 +794,7 @@ def main():
         "updated": iso(dt.datetime.now(dt.timezone.utc)),
         "location": {"name": "De Bilt (Midden-Nederland)", "lat": LAT, "lon": LON},
         "forecast": None, "ice": None,
-        "buienradar": buienradar(), "warnings": warnings(), "dearend": dearend(),
+        "buienradar": buienradar(), "warnings": warnings(), "dearend": dearend(), "schaatsnieuws": schaatsnieuws(),
         "sneeuwhoogte": sneeuwhoogte(), "posts": posts + xp, "x_state": xstate, "forum": noodweer_forum(),
         "x_connected": bool(__import__("os").environ.get("X_BEARER_TOKEN")), "comments": [],
         "x_accounts": [{"handle": h, "why": w, "url": f"https://x.com/{h}"} for h, w in X_ACCOUNTS],
@@ -780,6 +819,8 @@ def main():
         data["forecast"]["provider"] = fc.get("provider")
     if data.get("sneeuwhoogte"):
         data["sneeuwhoogte"]["img"] = thumb(data["sneeuwhoogte"].get("img_src"))
+    if data.get("schaatsnieuws"):
+        data["schaatsnieuws"]["knmi_pluim"] = thumb(data["schaatsnieuws"].get("knmi_pluim_src"), size=900)
     add_images(data["posts"], (prev or {}).get("posts"))
     data["ai"] = (prev or {}).get("ai")   # Claude-beoordeling (assess.py) bewaren tot de volgende
     data["om_blocked"] = OM_BLOCK.get("day")

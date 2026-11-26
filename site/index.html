@@ -84,8 +84,16 @@ button:hover{filter:brightness(.96)}
 :root[data-theme="dark"] .icebar{background:linear-gradient(90deg,#16304a 0 13.3%,#1b3d5c 13.3% 33.3%,#20496d 33.3% 53.3%,#265883 53.3% 80%,#2d6a9c 80%)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .icebar{background:linear-gradient(90deg,#16304a 0 13.3%,#1b3d5c 13.3% 33.3%,#20496d 33.3% 53.3%,#265883 53.3% 80%,#2d6a9c 80%)}}
 .icebar .now,.icebar .peak{position:absolute;top:0;bottom:0;width:3px;border-radius:2px;transform:translateX(-1px)}
+.icebar .meas{position:absolute;top:-2px;bottom:-2px;width:5px;border-radius:3px;transform:translateX(-2px);background:var(--ok);box-shadow:0 0 0 2px var(--solid)}
+.measured{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);border-left:4px solid var(--ok);background:var(--solid);font-size:.88rem}
+.measured .mv{font:600 1.4rem/1 var(--f-display);color:var(--ok)}
+.measured q{display:block;margin:4px 0;color:var(--muted);font-style:italic}
+.measured figure{margin:10px 0 0}
+.measured figure img{display:block;max-width:100%;border-radius:8px;border:1px solid var(--line);background:#fff}
+.measured figcaption{font-size:.78rem;color:var(--muted);margin-top:4px}
 .icebar .now{background:var(--fg)} .icebar .peak{background:var(--frost);opacity:.9}
-.icebar-scale{display:flex;justify-content:space-between;font:500 .7rem var(--f-mono);color:var(--muted)}
+.icebar-scale{position:relative;height:1.1em;font:500 .7rem var(--f-mono);color:var(--muted)}
+.icebar-scale span{position:absolute;top:0;transform:translateX(-50%)}.icebar-scale span:first-child{transform:none}.icebar-scale span:last-child{transform:none}
 .icebar-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--muted);margin-top:4px}
 .icebar-legend span{white-space:nowrap}.icebar-legend span:last-child{white-space:normal}
 .icebar-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
@@ -96,6 +104,10 @@ button:hover{filter:brightness(.96)}
 .days th{font:600 .75rem var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .days td.lbl{text-align:left;color:var(--muted);white-space:nowrap}
 .days .today{background:var(--accent-soft)}
+.night{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin:4px 0 6px;padding:8px 12px;border-radius:10px;background:var(--sunk);font-size:.82rem;color:var(--muted)}
+.night .nl{font:600 .75rem var(--f-body);text-transform:uppercase;letter-spacing:.06em}
+.night strong{font:600 1.5rem/1 var(--f-display);color:var(--fg)}
+.night.frost strong{color:var(--frost)} .night.hard{background:linear-gradient(90deg,var(--accent-soft),var(--sunk))} .night.hard strong{color:var(--frost)}
 .days td.zeker{color:var(--ok)} .days td.matig{color:var(--warn)} .days td.onzeker{color:var(--thaw);font-weight:600}
 .days td.models{font-size:.66rem;color:var(--muted);line-height:1.2;white-space:normal;min-width:44px}
 .neg{color:var(--frost);font-weight:600} .pos{color:var(--thaw)}
@@ -234,9 +246,13 @@ footer ul{padding-left:1.1em}
           <div class="gauge" id="gauge" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div><div class="ice-label" id="icelabel">–</div><div class="muted" id="icesub"></div></div>
         </div>
-        <div class="icebar" id="icebar" role="img"><span class="now" id="ib-now"></span><span class="peak" id="ib-peak"></span></div>
-        <div class="icebar-scale"><span>0</span><span>2</span><span>5</span><span>8</span><span>12</span><span>15 cm</span></div>
-        <div class="icebar-legend"><span><i style="background:var(--fg)"></i>nu</span><span><i style="background:var(--frost)"></i>verwachte piek</span><span>8 cm = vuistregel om op te staan, alleen met akkoord ijsmeester</span></div>
+        <div class="night" id="night" hidden></div>
+        <div style="display:none">
+        </div>
+        <div class="icebar" id="icebar" role="img"><span class="now" id="ib-now"></span><span class="peak" id="ib-peak"></span><span class="meas" id="ib-meas" hidden></span></div>
+        <div class="icebar-scale"><span style="left:0">0</span><span style="left:13.33%">2</span><span style="left:33.33%">5</span><span style="left:53.33%">8</span><span style="left:80%">12</span><span style="right:0">15 cm</span></div>
+        <div class="icebar-legend"><span><i style="background:var(--fg)"></i>nu</span><span><i style="background:var(--frost)"></i>verwachte piek</span><span id="lg-meas" hidden><i style="background:var(--ok)"></i>gemeten</span><span>8 cm = vuistregel om op te staan, alleen met akkoord ijsmeester</span></div>
+        <div class="measured" id="measured" hidden></div>
         <div class="days" style="margin-top:12px"><table id="days"></table></div>
         <h3 class="trend-h">Gaat het de goede kant op?</h3>
         <div class="muted" style="font-size:.8rem;margin-bottom:4px">Per dagdeel: bovenste regel = weermodellen, onderste = stemming in X, forum en nieuws</div>
@@ -339,6 +355,8 @@ footer ul{padding-left:1.1em}
 
   // Bibliotheek: vaste uitleg per soort weerkaart en per vakterm, herkend aan de tekst bij het bericht. Werkt zonder AI.
   const KAARTEN = [
+    {re: /ijspluim/i, wat: "KNMI-verwachting ijsdikte (pluim)",
+     uitleg: "Het KNMI rekent met alle varianten van het Europese weermodel uit hoe dik het ijs wordt op stilstaand, ondiep water. Elke dunne lijn is één variant; de dikke lijn het gemiddelde. Liggen de lijnen dicht bij elkaar, dan is de verwachting zeker. Let op: het geldt voor kleine, beschutte wateren zonder sneeuw. Grote plassen en stromend water bevriezen veel trager. Vuistregel: pas vanaf zo'n 8-10 cm, en alleen als de ijsclub of ijsmeester het goedkeurt."},
     {re: /pluim|gefs|\beps\b|ensemble|leden|spreiding|sprijding|cluster/i, wat: "Pluim (ensemble)",
      uitleg: "Een weermodel wordt tientallen keren gedraaid met steeds iets andere startwaarden. Elke lijn is zo'n variant ('lid'). Lopen de lijnen dicht bij elkaar, dan is de verwachting zeker. Waaieren ze uit (veel spreiding), dan is het onzeker. Kijk naar de dikke lijn (gemiddelde) en naar hoeveel lijnen onder de 0 of onder -5 °C zakken: hoe meer, hoe groter de kans op vorst."},
     {re: /\b850\b|t850/i, wat: "Temperatuur op 850 hPa (ongeveer 1,5 km hoogte)",
@@ -477,13 +495,46 @@ footer ul{padding-left:1.1em}
       const pos = cm => Math.max(0, Math.min(100, (cm || 0) / 15 * 100)) + "%";
       const nowCm = ice.today ? ice.today.cm : 0, peakCm = ice.peak ? ice.peak.cm : nowCm;
       $("ib-now").style.left = pos(nowCm); $("ib-peak").style.left = pos(peakCm); $("ib-peak").hidden = !(peakCm > nowCm);
+      const sn = d.schaatsnieuws || {}, ms = sn.latest;
+      $("ib-meas").hidden = !ms; $("lg-meas").hidden = !ms;
+      if (ms) $("ib-meas").style.left = pos(ms.cm);
+      const MS = $("measured"); MS.hidden = !(ms || img(sn.knmi_pluim)); MS.replaceChildren();
+      if (ms) {
+        const when = new Date(ms.time).toLocaleString("nl-NL", {weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
+        const su = safeUrl(sn.url);
+        MS.append(el("div", {}, [el("span", {cls: "mv", text: ms.cm.toLocaleString("nl-NL") + " cm"}), document.createTextNode(` gemeten · ${when}`)]),
+          el("q", {text: ms.text}),
+          su ? el("a", {href: su, target: "_blank", rel: "noopener", text: "Schaatsnieuws van Weerstation De Arend (Kortenhoef)"}) : null);
+      }
+      if (img(sn.knmi_pluim)) {
+        const ku = safeUrl(sn.knmi_url);
+        MS.append(el("figure", {}, [
+          ku ? el("a", {href: ku, target: "_blank", rel: "noopener"}, [el("img", {src: sn.knmi_pluim, alt: "KNMI-verwachting ijsdikte De Bilt", loading: "lazy"})]) : el("img", {src: sn.knmi_pluim, alt: ""}),
+          el("figcaption", {text: "KNMI-verwachting ijsdikte en watertemperatuur, De Bilt"}),
+          explain(null, "KNMI ijspluim ijsdikte", true)]));
+      }
       $("icebar").setAttribute("aria-label", `IJsdikte nu ongeveer ${nowCm} cm, verwachte piek ${peakCm} cm, op een schaal tot 15 cm`);
       const today = new Date().toLocaleDateString("sv-SE", tz);
+      // komende (of afgelopen) nacht: minimum van de dag erna, als gemiddelde van de modellen
+      {
+        const hr = +new Date().toLocaleString("en-GB", {...tz, hour: "2-digit", hour12: false});
+        const fut = ice.rows.filter(r => r.date >= today);
+        const nr = hr < 10 ? fut[0] : fut[1];
+        const N = $("night"); N.hidden = !nr; N.replaceChildren();
+        if (nr) {
+          const mins = Object.values(nr.min_per_model || {});
+          N.className = "night" + (nr.tmin <= -5 ? " hard" : nr.tmin < 0 ? " frost" : "");
+          N.append(el("span", {cls: "nl", text: hr < 10 ? "Afgelopen nacht" : "Komende nacht"}),
+            el("strong", {cls: "mono", text: fmtT(nr.tmin)}),
+            el("span", {text: (mins.length > 1 ? `modellen ${fmtT(Math.max(...mins))} tot ${fmtT(Math.min(...mins))}` : "") + " · De Bilt, 1,5 m hoogte. Bij heldere lucht en weinig wind kan het in open land en laagtes enkele graden kouder worden; aan de grond ook."}));
+        }
+      }
       const rows = ice.rows.filter(r => r.date >= today).slice(0, 10);
       const T = $("days"); T.replaceChildren();
       const head = el("tr", {}, [el("th", {text: ""})]);
-      const rMin = el("tr", {}, [el("td", {cls: "lbl", text: "Min"})]);
-      const rMax = el("tr", {}, [el("td", {cls: "lbl", text: "Max"})]);
+      const rMin = el("tr", {}, [el("td", {cls: "lbl", text: "Min (nacht)"})]);
+      const rMax = el("tr", {}, [el("td", {cls: "lbl", text: "Max (dag)"})]);
+      const rMean = el("tr", {}, [el("td", {cls: "lbl", text: "Gemiddeld"})]);
       const rCm = el("tr", {}, [el("td", {cls: "lbl", text: "IJs cm"})]);
       const rSp = el("tr", {}, [el("td", {cls: "lbl", text: "Spreiding"})]);
       const rMo = el("tr", {}, [el("td", {cls: "lbl", text: "Modellen"})]);
@@ -492,7 +543,7 @@ footer ul{padding-left:1.1em}
         const cls = r.date === today ? "today" : "";
         head.append(el("th", {cls, text: new Date(r.date).toLocaleDateString("nl-NL", {weekday: "short", day: "numeric"})}));
         const tc = v => el("td", {cls: cls + " mono " + (v < 0 ? "neg" : "pos"), text: fmtT(v)});
-        rMin.append(tc(r.tmin)); rMax.append(tc(r.tmax));
+        rMin.append(tc(r.tmin)); rMax.append(tc(r.tmax)); rMean.append(tc(r.tmean));
         const td = el("td", {cls: cls + " mono", text: r.cm ? r.cm.toLocaleString("nl-NL") : "–"});
         if (r.cm) td.prepend(el("div", {cls: "bar", style: `width:${Math.min(100, r.cm * 6)}%`}));
         rCm.append(td);
@@ -501,7 +552,7 @@ footer ul{padding-left:1.1em}
           title: r.per_model ? Object.entries(r.per_model).map(([m, v]) => `${m}: ${fmtT(v)}`).join("\n") : ""}));
         rMo.append(el("td", {cls: cls + " models", text: (r.models || []).map(short).join(" ") || "–"}));
       }
-      T.append(head, rMin, rMax, rCm);
+      T.append(head, rMin, rMax, rMean, rCm);
       if (rows.some(r => r.models)) T.append(rSp, rMo);
     }
     // beoordeling door Claude
