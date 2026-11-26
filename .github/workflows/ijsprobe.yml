@@ -21,4 +21,4 @@ jobs:
         run: |
           python3 tools/probe.py 2>&1 | cut -c1-3000
           curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/data.json -o prev.json || echo {} > prev.json
-          python3 ijsmetingen.py prev.json
+          echo skip

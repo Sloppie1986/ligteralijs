@@ -749,7 +749,7 @@ footer ul{padding-left:1.1em}
   // ---------------- ijskaart
   const LVL = cm => cm == null ? 0 : cm < 4.5 ? 1 : cm < 8 ? 2 : 3;
   const nl1 = v => v == null ? "–" : (+v).toLocaleString("nl-NL", {maximumFractionDigits: 1});
-  const ago = t => {
+  const ago2 = t => {
     const h = (Date.now() - new Date(t)) / 3600e3;
     return h < 1 ? Math.max(1, Math.round(h * 60)) + " min geleden" : h < 24 ? Math.round(h) + " uur geleden" : Math.round(h / 24) + " dag" + (h >= 36 ? "en" : "") + " geleden";
   };
@@ -795,7 +795,7 @@ footer ul{padding-left:1.1em}
       const row = el("button", {cls: "mrow", type: "button"}, [
         el("div", {cls: "mval lvl" + LVL(v)}, [document.createTextNode(v == null ? nl1(p.cm) : nl1(v)), el("small", {text: v == null ? "gemeten" : "9:00 morgen"})]),
         el("div", {}, [el("div", {cls: "mt", text: p.place}),
-          el("div", {cls: "ms", text: `${p.min === p.max ? nl1(p.min) : nl1(p.min) + "–" + nl1(p.max)} cm gemeten, ${ago(p.time)} · ${p.source}${p.who ? " (" + p.who + ")" : ""}` +
+          el("div", {cls: "ms", text: `${p.min === p.max ? nl1(p.min) : nl1(p.min) + "–" + nl1(p.max)} cm gemeten, ${ago2(p.time)} · ${p.source}${p.who ? " (" + p.who + ")" : ""}` +
             (v != null ? ` · vannacht +${nl1(p.night_gain)} cm` : "")})]),
         el("q", {text: p.quote})]);
       row.onclick = () => {
