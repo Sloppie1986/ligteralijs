@@ -386,6 +386,44 @@ def station_obs(old, now):
     return stations, hist
 
 
+WOW_KM = 12         # een amateurstation telt alleen als het echt dichtbij ligt
+WOW_MAXDIFF = 4.0   # en niet meer dan zoveel graden afwijkt van het dichtstbijzijnde KNMI-station
+
+
+def wow_obs(now, official):
+    """Amateurstations uit WOW (KNMI WOW-NL / KMI WOW-BE, één gezamenlijke kaart). Alleen Nederland en omgeving,
+    alleen verse waarden, en alleen als ze redelijk overeenkomen met het dichtstbijzijnde KNMI-station."""
+    d = json.loads(get("https://wow.meteo.be/api/v2/observation", timeout=40))
+    out = {}
+    for f in d.get("features") or []:
+        lon, lat = f["geometry"]["coordinates"][:2]
+        if not (50.75 <= lat <= 53.6 and 3.3 <= lon <= 7.25):
+            continue
+        pr = f.get("properties") or {}
+        t = (pr.get("primary") or {}).get("dt")
+        if t is None or not pr.get("timestamp") or not -30 < t < 30:
+            continue
+        when = dt.datetime.fromisoformat(pr["timestamp"])
+        if now - when > dt.timedelta(minutes=75):
+            continue
+        ref = min(((km(lat, lon, v["lat"], v["lon"]), v) for v in official.values()), default=None, key=lambda x: x[0])
+        if not ref or ref[0] > 40 or abs(t - ref[1]["temp"]) > WOW_MAXDIFF:
+            continue
+        name = (pr.get("name") or "WOW-station").strip()[:40]
+        out["wow:" + pr.get("site_id", f.get("id", name))] = {"lat": lat, "lon": lon, "temp": round(t, 1), "ground": None,
+                                                              "time": iso(when), "name": name, "amateur": True}
+    return out
+
+
+def add_obs(hist, key, st):
+    hour = iso(parse_iso(st["time"]).replace(minute=0, second=0, microsecond=0))
+    rows = hist.setdefault(key, [])
+    if rows and rows[-1][0] == hour:
+        rows[-1] = [hour, round((rows[-1][1] * rows[-1][3] + st["temp"]) / (rows[-1][3] + 1), 1), None, rows[-1][3] + 1]
+    else:
+        rows.append([hour, st["temp"], None, 1])
+
+
 def corrected(series, obs_rows, st, now):
     """Modelreeks bijgesteld met metingen: verleden = gemeten uurtemperatuur, toekomst = model + afnemend verschil."""
     if not st:
@@ -460,6 +498,12 @@ def build(prev=None, dearend=None):
     except Exception as e:
         errors["stations"] = f"{type(e).__name__}: {e}"[:200]
         stations, obs = {}, old.get("obs") or {}
+    try:
+        wow = wow_obs(now, stations) if stations else {}
+    except Exception as e:
+        errors["WOW"] = f"{type(e).__name__}: {e}"[:200]
+        wow = {}
+    used_wow = set()
     for p in points:
         series = temps.get((round(p["lat"], 1), round(p["lon"], 1)))
         if not series:
@@ -468,14 +512,27 @@ def build(prev=None, dearend=None):
         base = p["min"]   # voorzichtig: de dunste plek telt
         near = min(((km(p["lat"], p["lon"], v["lat"], v["lon"]), n) for n, v in stations.items()), default=None)
         st = stations[near[1]] if near and near[0] <= MAX_KM else None
-        fixed, corr = corrected(series, obs.get(near[1]) if st else None, st, now)
+        rows = obs.get(near[1]) if st else None
+        # een goedgekeurd amateurstation vlakbij gaat voor als het dichterbij ligt dan het KNMI-station
+        wnear = min(((km(p["lat"], p["lon"], v["lat"], v["lon"]), n) for n, v in wow.items()), default=None)
+        if wnear and wnear[0] <= WOW_KM and (not near or wnear[0] < near[0]):
+            near, st = wnear, wow[wnear[1]]
+            if wnear[1] not in used_wow:
+                add_obs(obs, wnear[1], st)
+                used_wow.add(wnear[1])
+            # uren zonder eigen meting van het amateurstation vullen met het KNMI-station
+            rows = (rows or []) + obs[wnear[1]]
+        fixed, corr = corrected(series, rows, st, now)
         p["model_morning_cm"], _, _ = grow(base, series, t0, tgt)
         p["now_cm"], _, _ = grow(base, fixed, t0, now)
         p["morning_cm"], p["fdd"], p["tmin"] = grow(base, fixed, t0, tgt)
         p["night_gain"] = round(p["morning_cm"] - p["now_cm"], 1)
         if st:
-            p["station"] = {"name": near[1], "km": round(near[0]), "temp": st["temp"], "ground": st["ground"], "time": st["time"], **corr}
-    return {"updated": iso(now), "target": iso(tgt), "points": points, "measurements": ms[:200], "obs": obs,
+            p["station"] = {"name": st.get("name", near[1]), "km": round(near[0]), "temp": st["temp"], "ground": st["ground"],
+                            "time": st["time"], "amateur": bool(st.get("amateur")), **corr}
+    ground = [{"name": n, "lat": v["lat"], "lon": v["lon"], "ground": v["ground"], "temp": v["temp"], "time": v["time"]}
+              for n, v in stations.items() if v.get("ground") is not None]
+    return {"updated": iso(now), "target": iso(tgt), "points": points, "ground": ground, "wow_count": len(wow), "measurements": ms[:200], "obs": obs,
             "geocache": GEO, "seen": seen_articles, "errors": errors, "a": A_STEFAN,
             "sources": ["Weerwoord (forum)", "IJsclub Vlietland"] + (["Weerstation De Arend"] if dearend else []) + [n for n, _ in NEWS_FEEDS]}
 
