@@ -101,6 +101,8 @@
     const f = $("prefform"), p = getPrefs();
     f.name.value = myName(); f.home.value = (p.home && p.home.name) || ""; f.zoom.value = String((p.home && p.home.zoom) || 10);
     f.tab.value = p.tab || ""; $("prefmsg").textContent = "";
+    f.notifyNear.checked = !!p.notifyNear; f.radius.value = p.radius || 30; f.notifyReplies.checked = !!p.notifyReplies;
+    f.hi.value = String(p.hi || 8); f.theme.value = p.theme || "";
     $("prefavatar").replaceChildren(avatarEl(myAvatar(), myName()));
     $("prefphoto").hidden = !user;
     $("prefdlg").showModal();
@@ -119,6 +121,13 @@
       e.preventDefault();
       const p = getPrefs(), msg = $("prefmsg");
       p.tab = f.tab.value;
+      p.notifyNear = f.notifyNear.checked; p.radius = Math.max(5, Math.min(150, +f.radius.value || 30));
+      p.notifyReplies = f.notifyReplies.checked; p.hi = +f.hi.value || 8; p.theme = f.theme.value;
+      if (p.theme) document.documentElement.dataset.theme = p.theme; else delete document.documentElement.dataset.theme;
+      if ((p.notifyNear || p.notifyReplies) && "Notification" in window && Notification.permission === "default") {
+        try { await Notification.requestPermission(); } catch (err) {}
+      }
+      if (p.notifyNear && !(f.home.value.trim())) { msg.textContent = "Vul eerst je plek in voor meldingen in de buurt."; return; }
       const q = f.home.value.trim();
       if (!q) delete p.home;
       else if (!p.home || p.home.name !== q) {
@@ -144,6 +153,7 @@
       $("prefdlg").close();
       renderAuth();
       if (window._icemap) window.iceHome(window._icemap);
+      if (window._icedata && window.renderIcemap) window.renderIcemap();
     };
   }
 
@@ -247,6 +257,7 @@
   }
   const open = new Set();
   function renderForum(threads, replies) {
+    replyAlerts(threads, replies);
     const box = $("samenforum"); if (!box) return;
     box.replaceChildren();
     if (!threads.length) box.append(el("p", {cls: "muted", text: "Nog geen berichten. Begin de eerste draad."}));
@@ -269,6 +280,19 @@
       det.append(f);
       box.append(det);
     }
+  }
+  function replyAlerts(threads, replies) {
+    if (!user || !getPrefs().notifyReplies || !window.iceNotify) return;
+    const mine = new Set(threads.filter(t => t.user_id === user.id).map(t => t.id));
+    const key = "seenReplies-" + user.id;
+    let seen; try { seen = JSON.parse(store.get(key) || "null"); } catch (e) { seen = null; }
+    const first = !seen; seen = seen || [];
+    const fresh = replies.filter(r => mine.has(r.parent_id) && r.user_id !== user.id && !seen.includes(r.id));
+    if (!first) for (const r of fresh.slice(0, 3)) {
+      const t = threads.find(x => x.id === r.parent_id);
+      window.iceNotify(`${r.name} reageerde op "${(t && (t.title || t.body) || "").slice(0, 40)}"`, r.body.slice(0, 120), "reply-" + r.id);
+    }
+    store.set(key, JSON.stringify([...seen, ...fresh.map(r => r.id)].slice(-300)));
   }
   function postEl(p) {
     const pu = photoUrl(p.photo);
