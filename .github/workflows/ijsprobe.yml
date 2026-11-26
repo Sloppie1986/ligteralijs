@@ -31,6 +31,8 @@ jobs:
             code=$(curl -sL -m 20 -A "$UA" -o $f -w "%{http_code} %{content_type}" "$u")
             echo "== $code $(wc -c <$f) $u"
           done
+      - name: Weerwoord python
+        run: python3 tools/probe.py
       - name: Weerwoord structuur
         run: |
           f=probe/$(echo "https://www.weerwoord.be/" | md5sum | cut -c1-8)
