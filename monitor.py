@@ -5,7 +5,7 @@ Gebruik:  python3 -I monitor.py <uitvoer.json> [vorige.json]
 Alleen standaardbibliotheek. Elke bron faalt los: een fout komt in 'errors'.
 Met een vorige data.json worden 'alerts' berekend (relevante veranderingen).
 """
-import json, math, re, sys, html, urllib.request, urllib.parse, datetime as dt
+import json, math, re, sys, time, html, urllib.request, urllib.parse, datetime as dt
 import xml.etree.ElementTree as ET
 from email.utils import parsedate_to_datetime
 
@@ -435,7 +435,14 @@ def ice_ensemble():
     """Daggemiddelde/min/max per dag als gemiddelde van de 3 beste beschikbare modellen, plus spreiding."""
     url = ("https://api.open-meteo.com/v1/forecast?latitude=%.2f&longitude=%.2f&hourly=temperature_2m"
            "&timezone=Europe%%2FAmsterdam&past_days=1&forecast_days=10&models=%s") % (LAT, LON, ",".join(m for m, _ in ICE_MODELS))
-    h = json.loads(get(url))["hourly"]
+    for attempt in range(3):
+        try:
+            h = json.loads(get(url, timeout=40))["hourly"]
+            break
+        except Exception:
+            if attempt == 2:
+                raise
+            time.sleep(5)
     per = {}   # dag -> model -> [temps]
     for m, _ in ICE_MODELS:
         vals = h.get("temperature_2m_" + m) or []
