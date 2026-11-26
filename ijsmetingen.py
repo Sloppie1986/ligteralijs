@@ -90,29 +90,31 @@ def cm_value(num, unit):
 
 
 def measurements_in(text):
-    """Geeft [(min_cm, max_cm, zin)] voor zinnen die een echte ijsmeting lijken."""
+    """Geeft [(min_cm, max_cm, zin)] voor zinnen die een echte ijsmeting lijken.
+    Verwachtingen en vuistregels vlak rond het getal ("minimaal 8 cm", "komt nog 2 cm bij") tellen niet."""
     out = []
     for sent in re.split(r"(?<=[.!?])\s+|\n", text):
         s = sent.strip()
-        if len(s) < 6 or not ICE.search(s) or NOT_MEASURED.search(s):
+        if len(s) < 6 or not ICE.search(s):
             continue
-        vals = []
+        vals, used = [], []
         for m in RANGE.finditer(s):
-            if AFTER_SKIP.match(s, m.end()):
+            if AFTER_SKIP.match(s, m.end()) or NOT_MEASURED.search(s[max(0, m.start() - 45):m.end() + 30]):
+                used.append((m.start(), m.end()))
                 continue
             u = m.group(4)
             vals.append((cm_value(m.group(1), m.group(2) or u), cm_value(m.group(3), u)))
-        if not vals:
-            for m in SINGLE.finditer(s):
-                if AFTER_SKIP.match(s, m.end()):
-                    continue
-                v = cm_value(m.group(1), m.group(2))
-                vals.append((v, v))
+            used.append((m.start(), m.end()))
+        for m in SINGLE.finditer(s):
+            if any(a <= m.start() < b for a, b in used):
+                continue
+            if AFTER_SKIP.match(s, m.end()) or NOT_MEASURED.search(s[max(0, m.start() - 45):m.end() + 30]):
+                continue
+            v = cm_value(m.group(1), m.group(2))
+            vals.append((v, v))
         vals = [(min(a, b), max(a, b)) for a, b in vals if 0.2 <= min(a, b) and max(a, b) <= 40]
         if vals:
-            lo = min(v[0] for v in vals)
-            hi = max(v[1] for v in vals)
-            out.append((round(lo, 1), round(hi, 1), s[:300]))
+            out.append((round(min(v[0] for v in vals), 1), round(max(v[1] for v in vals), 1), s[:300]))
     return out
 
 

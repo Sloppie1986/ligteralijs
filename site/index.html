@@ -772,7 +772,7 @@ footer ul{padding-left:1.1em}
     };
     if (window.L) {
       if (!window._icemap) {
-        window._icemap = L.map("icemap", {zoomSnap: 0.5}).setView([52.2, 5.3], 7);
+        window._icemap = L.map("icemap", {zoomSnap: 0.5}).fitBounds([[50.75, 3.4], [53.5, 7.2]]);
         L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 15, attribution: "© OpenStreetMap"}).addTo(window._icemap);
         window._icelayer = L.layerGroup().addTo(window._icemap);
       }
