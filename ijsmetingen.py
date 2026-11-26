@@ -80,6 +80,7 @@ NOT_MEASURED = re.compile(
     r"minimaal|minstens|tenminste|ten minste|nodig|vuistregel|moet|veilig|draagt|dragen|verwacht|prognose|model|pluim|"
     r"zou|zal |kan er|kunnen|komt .*bij|erbij|groei(t|en)? .*(nog|tot)|bij komt|aangroeien|morgen|vannacht nog|"
     r"neerslag|regen|sneeuw|hagel|elfstedentocht|toertocht|record|in 19\d\d|in 20[0-2]\d|vorig jaar|destijds", re.I)
+AFTER_SKIP = re.compile(r"\s*(?:(?:van|uit|vanaf) de (?:kant|wal|oever)|diep|onder|water|sneeuw|regen|neerslag|hoog)", re.I)
 ICE = re.compile(r"\bijs|ijsdikte|ijslaag|ijsvloer|dik\b|gemeten|meet\b", re.I)
 
 
@@ -97,10 +98,14 @@ def measurements_in(text):
             continue
         vals = []
         for m in RANGE.finditer(s):
+            if AFTER_SKIP.match(s, m.end()):
+                continue
             u = m.group(4)
             vals.append((cm_value(m.group(1), m.group(2) or u), cm_value(m.group(3), u)))
         if not vals:
             for m in SINGLE.finditer(s):
+                if AFTER_SKIP.match(s, m.end()):
+                    continue
                 v = cm_value(m.group(1), m.group(2))
                 vals.append((v, v))
         vals = [(min(a, b), max(a, b)) for a, b in vals if 0.2 <= min(a, b) and max(a, b) <= 40]
@@ -212,29 +217,32 @@ def src_weerwoord(out):
 
 
 def weerwoord_posts(raw):
-    """Berichten uit de forumindex: titel, auteur (woonplaats), tijd, begin van de tekst, link."""
+    """Berichten uit de forumindex: titel, auteur (woonplaats), tijd, begin van de tekst, link.
+    Alleen de openingsberichten staan met tekst in de index; reacties laadt de site pas met JavaScript."""
     posts = []
-    for m in re.finditer(r'href="(/m/(\d+))"', raw):
-        start = m.start()
-        block = raw[max(0, start - 200): start + 2500]
-        nxt = block.find('href="/m/', 210)
-        if nxt > 0:
-            block = block[:nxt]
-        t = text_of(block)
-        tm = re.search(r"(\d{2})-(\d{2})-(\d{4})\s+(\d{1,2}):(\d{2})", t)
-        au = re.search(r"([^\n()]{2,40})\s*\(([^()\n]{2,40})\)", t)
+    parts = re.split(r'<div class="message_header" data-hide-threadid="(\d+)"', raw)
+    for i in range(1, len(parts) - 1, 2):
+        mid, block = parts[i], parts[i + 1][:6000]
+        tt = re.search(r'class="[^"]*msg-title[^"]*">(.*?)</a>', block, re.S)
+        meta = re.search(r'<small style="font-family[^>]*>(.*?)</small>', block, re.S)
+        pv = re.search(r'data-message-preview-id="' + mid + r'">(.*?)</div>', block, re.S)
+        if not tt or not meta:
+            continue
+        m = re.sub(r'<span class="msg-altitude">.*?</span>', "", meta.group(1), flags=re.S)
+        m = text_of(m)
+        tm = re.search(r"(\d{2})-(\d{2})-(\d{4})\s+(\d{1,2}):(\d{2})", m)
         if not tm:
             continue
+        who = m[:tm.start()].replace("--", "").strip()
+        loc = re.search(r"\(([^()]{2,40})\)\s*$", who)
+        name = who[:loc.start()].strip() if loc else who
+        place = loc.group(1).strip() if loc else (who.split()[-1] if len(who.split()) > 1 else None)
         when = dt.datetime(int(tm.group(3)), int(tm.group(2)), int(tm.group(1)), int(tm.group(4)), int(tm.group(5)), tzinfo=AMS)
-        lines = [l for l in t.split("\n") if l.strip()]
-        posts.append({"url": "https://www.weerwoord.be" + m.group(1), "id": m.group(2), "time": when,
-                      "title": lines[0] if lines else "", "text": " ".join(lines[1:])[:800],
-                      "author": au.group(1).strip() if au else None, "loc": au.group(2).strip() if au else None})
-    seen, uniq = set(), []
-    for p in posts:
-        if p["id"] not in seen:
-            seen.add(p["id"]); uniq.append(p)
-    return uniq
+        text = text_of(pv.group(1)) if pv else ""
+        text = re.sub(r"\(link\)|https?://\S+|\.\.\.$", " ", text).strip()
+        posts.append({"url": "https://www.weerwoord.be/m/" + mid, "id": mid, "time": when, "title": text_of(tt.group(1)),
+                      "text": text[:800], "author": name or None, "loc": place})
+    return posts
 
 
 ICE_NEWS = re.compile(r"\bijs|schaats|natuurijs|ijsbaan|ijsclub|ijsmeester", re.I)

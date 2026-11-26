@@ -19,4 +19,6 @@ jobs:
           python-version: "3.12"
       - name: Test
         run: |
-          python3 tools/probe.py 2>&1 | cut -c1-6000
+          python3 tools/probe.py 2>&1 | cut -c1-3000
+          curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/data.json -o prev.json || echo {} > prev.json
+          python3 ijsmetingen.py prev.json

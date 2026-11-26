@@ -827,6 +827,14 @@ def main():
     data["errors"] = errors
     if data.get("ice"):
         data["ice_trend"] = ice_trend(data["ice"], prev, message_mood(data))
+    try:
+        import ijsmetingen
+        data["ijskaart"] = ijsmetingen.build(prev, data.get("schaatsnieuws"))
+        for k, v in data["ijskaart"].pop("errors", {}).items():
+            errors["ijskaart " + k] = v
+    except Exception as e:
+        errors["ijskaart"] = f"{type(e).__name__}: {e}"[:300]
+        data["ijskaart"] = (prev or {}).get("ijskaart")
     data["alerts"] = alerts(data, prev)
     if prev and prev.get("summary"):
         data["summary"] = prev["summary"]   # wordt door de geplande taak vernieuwd
