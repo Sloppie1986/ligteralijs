@@ -204,6 +204,10 @@ footer ul{padding-left:1.1em}
 .mrow .ms{font-size:.82rem;color:var(--muted)}
 .mrow q{grid-column:1 / -1;font-size:.85rem;color:var(--muted)}
 .lvl0{background:#7d8b96}.lvl1{background:#c0532c}.lvl2{background:#d08a00}.lvl3{background:#1d7fc4}
+.gpin{font:700 11px/1 var(--f-body);padding:3px 5px;border-radius:6px;color:#fff;border:1px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);white-space:nowrap}
+.gpin.frost{background:#1d5fa8}.gpin.thaw{background:#b4561e}
+.groundbtn{background:#fff;color:#0f2233;border:0;font:600 12px/1 var(--f-body);padding:7px 9px;cursor:pointer}
+.groundbtn[aria-pressed=true]{background:#1d5fa8;color:#fff}
 .mpin{display:inline-flex;white-space:nowrap;border-radius:999px;overflow:hidden;font:700 12px/1 var(--f-body);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45)}
 .mpin b,.mpin span{padding:5px 6px}
 .mpin b{background:#fff;color:#0f2233}
@@ -304,7 +308,7 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
           </div>
           <div class="mlist" id="mlist"></div>
         </div>
-        <details class="more"><summary>Hoe wordt de prognose berekend?</summary><p class="note" id="mapnote"></p></details>
+        <details class="more"><summary>Hoe wordt de prognose berekend?</summary><p class="note">De grondtemperatuur op 10 cm (KNMI-stations) zet je aan met de knop op de kaart. Een vlakdekkende kaart staat bij <a href="https://www.weerplaza.nl/nederland/temperatuur-10-cm/" target="_blank" rel="noopener">Weerplaza</a>.</p><p class="note" id="mapnote"></p></details>
       </section>
     </div>
     <div class="col active" data-tab="overzicht">
@@ -837,11 +841,11 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     const tgt = tgtD ? tgtD.toLocaleString("nl-NL", {...tz, weekday: "short"}) + " 9:00" : "morgen 9:00";
     const nSt = new Set(pts.filter(p => p.station).map(p => p.station.name)).size;
     $("mapmeta").textContent = `${pts.length} metingen` + (nSt ? ` · bijgesteld met ${nSt} weerstations` : "");
-    $("mapnote").textContent = `Prognose voor ${tgt}: vanaf de dunste gemeten waarde, met de temperatuur op die plek. Sinds de meting telt de gemeten temperatuur van het dichtstbijzijnde KNMI-station; daarna de modelverwachting, bijgesteld met het verschil tussen meting en model van dit moment. Sneeuw, wind, stroming en kwel tellen niet mee. Een plaatsnaam staat op het midden van die plaats.`;
+    $("mapnote").textContent = `Prognose voor ${tgt}: vanaf de dunste gemeten waarde, met de temperatuur op die plek. Sinds de meting telt de gemeten temperatuur van het dichtstbijzijnde weerstation: een KNMI-station, of een amateurstation (WOW) binnen 12 km dat niet meer dan 4 graden van het KNMI afwijkt${k.wow_count ? ` (nu ${k.wow_count} goedgekeurd)` : ""}; daarna de modelverwachting, bijgesteld met het verschil tussen meting en model van dit moment. Sneeuw, wind, stroming en kwel tellen niet mee. Een plaatsnaam staat op het midden van die plaats.`;
     const meas = p => p.min === p.max ? nl1(p.min) : nl1(p.min) + "–" + nl1(p.max);
     const stLine = p => {
       const s = p.station; if (!s) return null;
-      let t = `${s.name} (${s.km} km) meet ${nl1(s.temp)} °C`;
+      let t = `${s.amateur ? "Amateurstation " : ""}${s.name} (${s.km} km) meet ${nl1(s.temp)} °C`;
       if (s.model != null && Math.abs(s.bias) >= 0.3) t += `, model ${nl1(s.model)} °C`;
       const d = p.model_morning_cm != null ? +(p.morning_cm - p.model_morning_cm).toFixed(1) : 0;
       if (Math.abs(d) >= 0.1) t += ` · prognose ${d > 0 ? "+" : "−"}${nl1(Math.abs(d))} cm bijgesteld`;
@@ -867,8 +871,31 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
         window._icemap.on("dragstart", () => { window._icefit = false; });
         L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 15, attribution: "© OpenStreetMap"}).addTo(window._icemap);
         window._icelayer = L.layerGroup().addTo(window._icemap);
+        window._groundlayer = L.layerGroup();
+        const GroundCtl = L.Control.extend({onAdd() {
+          const b = L.DomUtil.create("button", "groundbtn leaflet-bar");
+          b.type = "button"; b.textContent = "🌡 Grond 10 cm"; b.setAttribute("aria-pressed", "false");
+          L.DomEvent.disableClickPropagation(b);
+          b.onclick = () => {
+            const on = !window._icemap.hasLayer(window._groundlayer);
+            if (on) window._groundlayer.addTo(window._icemap); else window._icemap.removeLayer(window._groundlayer);
+            b.setAttribute("aria-pressed", String(on));
+          };
+          return b;
+        }});
+        new GroundCtl({position: "topright"}).addTo(window._icemap);
       }
       window._icelayer.clearLayers();
+      window._groundlayer.clearLayers();
+      for (const g of k.ground || []) {
+        const icon = L.divIcon({className: "", iconSize: null, iconAnchor: [14, 9],
+          html: `<div class="gpin ${g.ground < 0 ? "frost" : "thaw"}">${nl1(g.ground)}°</div>`});
+        L.marker([g.lat, g.lon], {icon, title: `${g.name}: ${nl1(g.ground)} °C op 10 cm, lucht ${nl1(g.temp)} °C`})
+          .bindPopup(() => el("div", {}, [el("strong", {text: g.name}), el("div", {text: `Grond (10 cm): ${nl1(g.ground)} °C`}),
+            el("div", {text: `Lucht (1,5 m): ${nl1(g.temp)} °C`}),
+            el("div", {cls: "pst", text: "KNMI, " + new Date(g.time).toLocaleTimeString("nl-NL", {...tz, hour: "2-digit", minute: "2-digit"})})]))
+          .addTo(window._groundlayer);
+      }
       window._icemarkers = {};
       for (const p of pts.slice().reverse()) {
         const v = p.morning_cm ?? null;

@@ -21,10 +21,6 @@ jobs:
         run: |
           true
           curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/data.json -o prev.json || echo {} > prev.json
-          pip -q install h5py netCDF4 || true
-          python3 probe_st.py
-          python3 -c "import netCDF4 as n;d=n.Dataset('knmi.nc');print(list(d.variables));print(len(d.variables['station'][:]));import numpy as np;[print(k,d.variables[k].long_name,np.ma.count(d.variables[k][:])) for k in d.variables if k.startswith('t')]" || true
-          exit 0
           python3 ijsmetingen.py prev.json
           python3 monitor.py out.json prev.json | cut -c1-1500
-          python3 -c "import json;d=json.load(open('out.json'));k=d['ijskaart'];print(len(k['points']),'punten',d['alerts'][:5])"
+          python3 -c "import json;d=json.load(open('out.json'));k=d['ijskaart'];print(len(k['points']),'punten',k.get('wow_count'),'wow',len(k.get('ground',[])),'grond',d['alerts'][:5]);[print(p['place'],p.get('morning_cm'),p.get('station')) for p in k['points']]"
