@@ -60,6 +60,12 @@ create policy "ingelogd plaatst eigen" on public.posts for insert to authenticat
 create policy "eigen of beheer verwijdert" on public.posts for delete to authenticated using (user_id = auth.uid() or public.is_admin());
 create policy "beheer verbergt" on public.posts for update to authenticated using (public.is_admin()) with check (public.is_admin());
 
+-- ---------- rechten voor de app (nieuwe Supabase-projecten geven die niet meer automatisch)
+grant select on public.reports, public.posts to anon, authenticated;
+grant insert, update, delete on public.reports, public.posts to authenticated;
+grant select on public.admins to authenticated;
+revoke truncate, references, trigger on public.reports, public.posts, public.admins from anon, authenticated;
+
 -- ---------- foto's: openbaar te bekijken, alleen in je eigen map te uploaden, max 3 MB
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('fotos', 'fotos', true, 3145728, array['image/jpeg','image/png','image/webp'])
