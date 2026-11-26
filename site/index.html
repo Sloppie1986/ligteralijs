@@ -7,7 +7,11 @@
 <meta name="theme-color" content="#1f5f8b">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Ligt er al ijs?">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -177,7 +181,7 @@ footer ul{padding-left:1.1em}
       <p class="muted">Weer, vorst, natuurijs en de laatste berichten voor Midden-Nederland, op één plek.</p>
     </div>
     <div class="mini" id="mini" aria-hidden="true"></div>
-    <div class="stamp"><span><span id="dot" class="dot"></span> <span id="updated">Laden…</span></span><span class="btns"><button id="bell" type="button" hidden>🔔 Meldingen aan</button><button id="reload" type="button">Nu verversen</button></span></div>
+    <div class="stamp"><span><span id="dot" class="dot"></span> <span id="updated">Laden…</span></span><span class="btns"><button id="install" type="button" hidden>📲 Installeer app</button><button id="bell" type="button" hidden>🔔 Meldingen aan</button><button id="reload" type="button">Nu verversen</button></span></div>
   </div>
 
   <div id="alerts" class="alerts"></div>
@@ -510,6 +514,23 @@ footer ul{padding-left:1.1em}
   const _render = render;
   render = function () { _render(); badges(); };
 
+  // installeerbare app (PWA)
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+  let installEvt = null;
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; $("install").hidden = false; });
+  window.addEventListener("appinstalled", () => { $("install").hidden = true; });
+  // iPhone/iPad: Safari kent geen installatieknop, dus uitleg tonen
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  if (isIOS && !standalone) $("install").hidden = false;
+  $("install").addEventListener("click", async () => {
+    if (!installEvt) {
+      if (isIOS) alert("Installeren op iPhone:\n1. Open deze pagina in Safari\n2. Tik onderaan op Deel (vierkantje met pijl omhoog)\n3. Kies 'Zet op beginscherm' en tik op 'Voeg toe'");
+      return;
+    }
+    installEvt.prompt(); await installEvt.userChoice; installEvt = null; $("install").hidden = true;
+  });
+
   // meldingen via OneSignal (webpush)
   (async () => {
     let cfg = {};
@@ -522,7 +543,7 @@ footer ul{padding-left:1.1em}
     sdk.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"; sdk.defer = true;
     document.head.append(sdk);
     OneSignalDeferred.push(async OneSignal => {
-      await OneSignal.init({appId: cfg.onesignal_app_id, serviceWorkerPath: base.slice(1) + "OneSignalSDKWorker.js",
+      await OneSignal.init({appId: cfg.onesignal_app_id, serviceWorkerPath: base.slice(1) + "sw.js",
                             serviceWorkerParam: {scope: base}, notifyButton: {enable: false}});
       const sync = () => {
         const on = OneSignal.Notifications.permission && OneSignal.User.PushSubscription.optedIn;
