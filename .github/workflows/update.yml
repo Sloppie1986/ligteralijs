@@ -42,6 +42,11 @@ jobs:
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
         run: python3 monitor.py site/data.json prev.json | tee result.json
 
+      - name: Vertalen en kaarten uitleggen (Claude Haiku, alleen nieuwe items)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 enrich.py site/data.json prev.json || echo "verrijken mislukt, site gaat gewoon door"
+
       - name: Berichten en kaarten laten beoordelen door Claude (1x per dagdeel)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

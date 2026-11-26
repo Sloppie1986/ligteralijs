@@ -4,7 +4,7 @@
 <title>Ligt er al ijs?</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#1f5f8b">
+<meta name="theme-color" content="#14608f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -18,27 +18,32 @@
 <style>
 /* Layout: één kolom op telefoon; op breed scherm links 'nu + ijs', rechts de berichtenstroom. */
 :root{
-  --bg:#eef2f5; --surface:#ffffff; --sunk:#e2e8ee; --line:#cfd8e0;
-  --fg:#14222e; --muted:#566676; --accent:#1f5f8b; --accent-soft:#d6e6f2;
-  --frost:#2b7bb9; --thaw:#b5522f; --warn:#b77900; --warn-bg:#fff4d6; --bad:#b3261e; --bad-bg:#fde4e1; --ok:#2d7a4b;
+  --bg:#e9f2f8; --bg2:#f7fbfd; --surface:rgba(255,255,255,.82); --solid:#ffffff; --sunk:#e3eef5; --line:#cbdde9;
+  --fg:#0f2233; --muted:#52677a; --accent:#14608f; --accent-soft:#d3e7f4;
+  --frost:#1d7fc4; --thaw:#c0532c; --ice:#9fd3f0; --ice-deep:#3d9ad6; --shadow:0 1px 2px rgba(16,50,80,.06),0 8px 24px rgba(16,50,80,.07); --warn:#b77900; --warn-bg:#fff4d6; --bad:#b3261e; --bad-bg:#fde4e1; --ok:#2d7a4b;
   --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
   --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0d151c; --surface:#15212b; --sunk:#1b2a36; --line:#2a3b49;
-  --fg:#e4edf4; --muted:#93a6b6; --accent:#7fb8e2; --accent-soft:#1c3446;
-  --frost:#79b6ea; --thaw:#e08a63; --warn:#f0b43c; --warn-bg:#3a2c0c; --bad:#ff8a80; --bad-bg:#3d1714; --ok:#7fd09c; color-scheme:dark}}
+  --bg:#07131d; --bg2:#0c1f2e; --surface:rgba(16,34,48,.82); --solid:#102230; --sunk:#16304250; --line:#22405a;
+  --fg:#e6f1f8; --muted:#94aec2; --accent:#8cc8ee; --accent-soft:#17364d;
+  --frost:#7cc3f2; --thaw:#ec9166; --ice:#5fb3e6; --ice-deep:#9fd8fa; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.25); --warn:#f0b43c; --warn-bg:#3a2c0c; --bad:#ff8a80; --bad-bg:#3d1714; --ok:#7fd09c; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0d151c; --surface:#15212b; --sunk:#1b2a36; --line:#2a3b49;
-  --fg:#e4edf4; --muted:#93a6b6; --accent:#7fb8e2; --accent-soft:#1c3446;
-  --frost:#79b6ea; --thaw:#e08a63; --warn:#f0b43c; --warn-bg:#3a2c0c; --bad:#ff8a80; --bad-bg:#3d1714; --ok:#7fd09c; color-scheme:dark}
+  --bg:#07131d; --bg2:#0c1f2e; --surface:rgba(16,34,48,.82); --solid:#102230; --sunk:#16304250; --line:#22405a;
+  --fg:#e6f1f8; --muted:#94aec2; --accent:#8cc8ee; --accent-soft:#17364d;
+  --frost:#7cc3f2; --thaw:#ec9166; --ice:#5fb3e6; --ice-deep:#9fd8fa; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.25); --warn:#f0b43c; --warn-bg:#3a2c0c; --bad:#ff8a80; --bad-bg:#3d1714; --ok:#7fd09c; color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--f-body);margin:0}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--f-body);margin:0;min-height:100vh;
+  background-image:radial-gradient(1200px 500px at 85% -10%,var(--bg2),transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%2378a9c9' stroke-opacity='.13' stroke-width='1'%3E%3Cpath d='M0 60 L70 40 L120 90 L200 70 L240 100'/%3E%3Cpath d='M70 40 L60 0'/%3E%3Cpath d='M120 90 L110 170 L40 200 L0 190'/%3E%3Cpath d='M110 170 L190 200 L240 180'/%3E%3Cpath d='M200 70 L190 200'/%3E%3Cpath d='M120 90 L160 0'/%3E%3Cpath d='M40 200 L60 240'/%3E%3C/g%3E%3C/svg%3E");
+  background-attachment:fixed}
 .wrap{max-width:1680px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1,h2,h3{font-family:var(--f-display);letter-spacing:.01em;margin:0;text-wrap:balance}
-h1{font-size:2.1rem;font-weight:700;text-transform:uppercase}
-h2{font-size:1.35rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+h1{font-size:2.3rem;font-weight:700;text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:10px}
+h1 .flake{width:1.05em;height:1.05em;flex:none;color:var(--ice-deep)}
+h2{font-size:1.25rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:4px;height:1em;border-radius:2px;background:linear-gradient(var(--ice),var(--ice-deep))}
 a{color:var(--accent)}
 a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
@@ -50,13 +55,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-off
 .dot.stale{background:var(--warn)}
 .btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 #bell[aria-pressed="true"]{background:var(--sunk);color:var(--muted)}
-button{font:600 .85rem var(--f-body);color:var(--accent);background:var(--accent-soft);border:0;border-radius:6px;padding:6px 10px;cursor:pointer}
+button{font:600 .85rem var(--f-body);color:var(--accent);background:var(--accent-soft);border:0;border-radius:999px;padding:6px 12px;cursor:pointer;transition:filter .15s}
+button:hover{filter:brightness(.96)}
 .grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,6fr) minmax(0,5fr);gap:20px;align-items:start}
 .grid>.forumcol{grid-column:auto}
 @media (max-width:1320px){.grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}.grid>.forumcol{grid-column:1 / -1}}
 @media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
 .col{display:flex;flex-direction:column;gap:20px;min-width:0}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.panel{background:var(--surface);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0;box-shadow:var(--shadow)}
 .panel>header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
 .alert{border-radius:8px;padding:10px 14px;background:var(--warn-bg);border-left:4px solid var(--warn)}
@@ -69,9 +75,20 @@ button{font:600 .85rem var(--f-body);color:var(--accent);background:var(--accent
 .stations{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .chip{font-size:.85rem;background:var(--sunk);border-radius:999px;padding:3px 10px}
 .ice-head{display:flex;gap:14px;align-items:center;margin-bottom:10px}
-.gauge{display:flex;gap:3px}
-.gauge i{width:18px;height:28px;border-radius:3px;background:var(--sunk)}
-.gauge i.on{background:var(--frost)}
+.gauge{display:flex;gap:4px;align-items:flex-end}
+.gauge i{width:16px;border-radius:4px;background:var(--sunk);border:1px solid var(--line)}
+.gauge i:nth-child(1){height:14px}.gauge i:nth-child(2){height:22px}.gauge i:nth-child(3){height:30px}.gauge i:nth-child(4){height:38px}
+.gauge i.on{background:linear-gradient(180deg,#fff 0%,var(--ice) 35%,var(--ice-deep) 100%);border-color:var(--ice-deep);box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+.icebar{position:relative;height:30px;border-radius:8px;margin:12px 0 4px;overflow:hidden;border:1px solid var(--line);
+  background:linear-gradient(90deg,var(--sunk) 0 13.3%,#dbeef9 13.3% 33.3%,#bfe2f6 33.3% 53.3%,#9fd3f0 53.3% 80%,#7cc2ec 80%)}
+:root[data-theme="dark"] .icebar{background:linear-gradient(90deg,#16304a 0 13.3%,#1b3d5c 13.3% 33.3%,#20496d 33.3% 53.3%,#265883 53.3% 80%,#2d6a9c 80%)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .icebar{background:linear-gradient(90deg,#16304a 0 13.3%,#1b3d5c 13.3% 33.3%,#20496d 33.3% 53.3%,#265883 53.3% 80%,#2d6a9c 80%)}}
+.icebar .now,.icebar .peak{position:absolute;top:0;bottom:0;width:3px;border-radius:2px;transform:translateX(-1px)}
+.icebar .now{background:var(--fg)} .icebar .peak{background:var(--frost);opacity:.9}
+.icebar-scale{display:flex;justify-content:space-between;font:500 .7rem var(--f-mono);color:var(--muted)}
+.icebar-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--muted);margin-top:4px}
+.icebar-legend span{white-space:nowrap}.icebar-legend span:last-child{white-space:normal}
+.icebar-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 .ice-label{font:600 1.4rem/1.1 var(--f-display)}
 .days{overflow-x:auto}
 .days table{border-collapse:collapse;width:100%;min-width:520px;font-size:.85rem}
@@ -102,7 +119,7 @@ button{font:600 .85rem var(--f-body);color:var(--accent);background:var(--accent
 .filters button{background:var(--sunk);color:var(--fg);font-weight:600}
 .filters button[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
 .feed{display:flex;flex-direction:column}
-.post{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:4px 14px;padding:12px 0;border-top:1px solid var(--line)}
+.post{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:4px 14px;padding:14px 0;border-top:1px solid var(--line)}
 .post:first-child{border-top:0}
 .post time{font:500 .8rem var(--f-mono);color:var(--muted);padding-top:3px}
 .post .src{font:600 .75rem var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
@@ -135,13 +152,25 @@ button{font:600 .85rem var(--f-body);color:var(--accent);background:var(--accent
 footer{margin-top:28px;font-size:.85rem;color:var(--muted);max-width:75ch}
 footer ul{padding-left:1.1em}
 .empty{padding:20px;text-align:center;color:var(--muted)}
+.linkbtn{background:none;padding:0;border-radius:0;font:600 .78rem var(--f-body);color:var(--accent);text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
+.tlnote{margin-top:4px}
+.orig{margin-top:6px;padding:8px 10px;border-radius:8px;background:var(--sunk);font-size:.85rem;white-space:pre-line;color:var(--muted)}
+.picwrap{display:flex;flex-direction:column;gap:6px;align-items:stretch;min-width:0}
+.fimgs figure{margin:0;display:flex;flex-direction:column;gap:6px;max-width:100%}
+.explain{align-self:flex-start;background:linear-gradient(180deg,#fff,var(--accent-soft));border:1px solid var(--line);color:var(--accent);font-size:.8rem;padding:4px 12px}
+.uitleg{border-radius:10px;padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-left:4px solid var(--ice-deep);font-size:.88rem;max-width:520px}
+.uitleg p{margin:4px 0}
+.uitleg .ijs{display:inline-block;font:700 .75rem var(--f-body);padding:2px 8px;border-radius:999px;background:var(--sunk)}
+.uitleg .ijs.goed{background:var(--accent-soft);color:var(--frost)} .uitleg .ijs.slecht{background:var(--bad-bg);color:var(--thaw)}
+.terms{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:8px 0 0;font-size:.8rem}
+.terms dt{font-weight:700;white-space:nowrap} .terms dd{margin:0;color:var(--muted)}
 /* telefoon: één tab tegelijk, vaste tabbalk onderin */
 .tabbar{display:none}
 .mini{display:none}
 @media (max-width:900px){
   body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
   .wrap{padding-block:0 24px}
-  .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 12px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);flex-wrap:nowrap;align-items:center}
+  .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 82%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 12px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);flex-wrap:nowrap;align-items:center}
   body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
   .top h1{font-size:1.35rem;line-height:1.1}
   .top p.muted{display:none}
@@ -177,7 +206,7 @@ footer ul{padding-left:1.1em}
 <div class="wrap">
   <div class="top">
     <div>
-      <h1>Ligt er al ijs?</h1>
+      <h1><svg class="flake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M12 2l-2 2M12 2l2 2M12 22l-2-2M12 22l2-2M3.3 7l2.7.2M3.3 7l1.1 2.5M20.7 17l-2.7-.2M20.7 17l-1.1-2.5M3.3 17l1.1-2.5M3.3 17l2.7-.2M20.7 7l-1.1 2.5M20.7 7l-2.7.2"/></svg>Ligt er al ijs?</h1>
       <p class="muted">Weer, vorst, natuurijs en de laatste berichten voor Midden-Nederland, op één plek.</p>
     </div>
     <div class="mini" id="mini" aria-hidden="true"></div>
@@ -203,7 +232,10 @@ footer ul{padding-left:1.1em}
           <div class="gauge" id="gauge" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div><div class="ice-label" id="icelabel">–</div><div class="muted" id="icesub"></div></div>
         </div>
-        <div class="days"><table id="days"></table></div>
+        <div class="icebar" id="icebar" role="img"><span class="now" id="ib-now"></span><span class="peak" id="ib-peak"></span></div>
+        <div class="icebar-scale"><span>0</span><span>2</span><span>5</span><span>8</span><span>12</span><span>15 cm</span></div>
+        <div class="icebar-legend"><span><i style="background:var(--fg)"></i>nu</span><span><i style="background:var(--frost)"></i>verwachte piek</span><span>8 cm = vuistregel om op te staan, alleen met akkoord ijsmeester</span></div>
+        <div class="days" style="margin-top:12px"><table id="days"></table></div>
         <h3 class="trend-h">Gaat het de goede kant op?</h3>
         <div class="muted" style="font-size:.8rem;margin-bottom:4px">Per dagdeel: bovenste regel = weermodellen, onderste = stemming in X, forum en nieuws</div>
         <div class="ai" id="ai" hidden></div>
@@ -279,6 +311,98 @@ footer ul{padding-left:1.1em}
   };
   const img = u => typeof u === "string" && u.startsWith("data:image/") ? u : null;
   const safeUrl = u => (typeof u === "string" && u.startsWith("https://")) ? u : null;
+  const LANG = {de: "Duits", en: "Engels"};
+  // tekst met vertaling: toont de Nederlandse versie, met knop naar het origineel
+  const tl = (obj, f, tag, attrs = {}, max = 0) => {
+    const orig = obj[f] || "", nl = obj[f + "_nl"];
+    const cut = t => max && t.length > max ? t.slice(0, max) + "…" : t;
+    if (!nl) return el(tag, {...attrs, text: cut(orig)});
+    const n = el(tag, {...attrs, text: cut(nl)});
+    return n;
+  };
+  const tlNote = obj => {
+    if (!obj.lang) return null;
+    if (!(obj.title_nl || obj.summary_nl || obj.text_nl)) {
+      const txt = [obj.title, obj.summary, obj.text].filter(Boolean).join("\n\n").slice(0, 1500);
+      return el("div", {cls: "tlnote"}, [el("a", {cls: "linkbtn", target: "_blank", rel: "noopener",
+        href: "https://translate.google.com/?sl=auto&tl=nl&op=translate&text=" + encodeURIComponent(txt), text: `In het ${LANG[obj.lang] || "buitenlands"} · vertaal naar Nederlands`})]);
+    }
+    const b = el("button", {type: "button", cls: "linkbtn", text: `Vertaald uit het ${LANG[obj.lang] || "buitenlands"} · toon origineel`});
+    const box = el("div", {cls: "orig", hidden: ""});
+    box.textContent = [obj.title, obj.summary, obj.text].filter(Boolean).join("\n\n");
+    b.onclick = () => { box.hidden = !box.hidden; b.textContent = box.hidden ? `Vertaald uit het ${LANG[obj.lang] || "buitenlands"} · toon origineel` : "Verberg origineel"; };
+    return el("div", {cls: "tlnote"}, [b, box]);
+  };
+
+  // Bibliotheek: vaste uitleg per soort weerkaart en per vakterm, herkend aan de tekst bij het bericht. Werkt zonder AI.
+  const KAARTEN = [
+    {re: /pluim|gefs|\beps\b|ensemble|leden|spreiding|sprijding|cluster/i, wat: "Pluim (ensemble)",
+     uitleg: "Een weermodel wordt tientallen keren gedraaid met steeds iets andere startwaarden. Elke lijn is zo'n variant ('lid'). Lopen de lijnen dicht bij elkaar, dan is de verwachting zeker. Waaieren ze uit (veel spreiding), dan is het onzeker. Kijk naar de dikke lijn (gemiddelde) en naar hoeveel lijnen onder de 0 of onder -5 °C zakken: hoe meer, hoe groter de kans op vorst."},
+    {re: /\b850\b|t850/i, wat: "Temperatuur op 850 hPa (ongeveer 1,5 km hoogte)",
+     uitleg: "Deze kaart toont hoe koud de lucht op ongeveer 1,5 km hoogte is. Dat zegt meer over de echte luchtsoort dan de temperatuur aan de grond. Blauw/paars is koud. Ligt Nederland in lucht van -8 °C of kouder op 850 hPa, dan is er vaak strenge vorst mogelijk (zeker 's nachts bij weinig wind en heldere lucht)."},
+    {re: /\b500\b|geopot|hoogtekaart|straalstroom|jetstream/i, wat: "Hoogtekaart (500 hPa, ongeveer 5,5 km)",
+     uitleg: "Deze kaart laat de grote stroming hoog in de lucht zien. Rood/oranje = hogedruk en warmere lucht, blauw/paars = lagedruk en koude lucht. De lijnen zijn de 'rivieren' waarlangs het weer beweegt. Voor ijs wil je een rode bult (hogedruk) boven Scandinavië of IJsland/Groenland en blauw boven Oost-Europa: dan komt de wind uit het oosten of noorden."},
+    {re: /\b(gfs|ecmwf|ecm|eec|icon|gem|harmonie|arpege|ukmo|uk ?met)\b.*?\d+\s*(u|uur|h)\b|\+\s*\d+\s*(u|uur|h)\b|\b\d{1,3}\s*(u|uur)\b/i, wat: "Modelkaart met luchtdruk",
+     uitleg: "Een kaart van één weermodel voor een tijdstip in de toekomst (het getal met 'u' is het aantal uren vooruit). De lijnen verbinden plaatsen met dezelfde luchtdruk. Bij een hogedrukgebied (H) draait de wind met de klok mee, bij een lagedrukgebied (L) tegen de klok in. Ligt de H ten noorden of noordoosten van ons, dan waait er een oostenwind: koud in de winter. Hoe verder vooruit (boven ±150 uur), hoe onzekerder: zie het als een mogelijkheid, niet als verwachting."},
+    {re: /\b2\s?m\b|minimum|maxima|minima|grondtemp|nachtvorst|vorst in/i, wat: "Temperatuurkaart aan de grond",
+     uitleg: "De verwachte temperatuur op 2 meter hoogte (zoals een gewoon thermometerhuisje). Voor natuurijs telt vooral hoeveel dagen het gemiddeld onder nul blijft, niet één koude nacht. Een paar dagen met maxima onder 0 °C (ijsdagen) geven snel ijsgroei."},
+    {re: /neerslag|sneeuw|regen|radar/i, wat: "Neerslag- of sneeuwkaart",
+     uitleg: "Laat zien waar en hoeveel neerslag er valt. Sneeuw op ijs werkt als een deken: het ijs groeit dan veel trager en wordt slechter van kwaliteit. Voor schaatsijs is droog, helder en koud weer het best."},
+    {re: /stratosfeer|polar\s?vortex|polarwirbel|poolvortex|\bssw\b|opwarming/i, wat: "Stratosfeer / poolvortex",
+     uitleg: "Hoog boven de Noordpool (20-50 km) draait in de winter een koude wervel, de poolvortex. Is die sterk, dan blijft de kou meestal rond de pool en krijgen wij zacht westenwindweer. Raakt hij verstoord (een plotselinge opwarming, SSW), dan kan de kou weken later naar Europa zakken. Dit gaat over kansen op langere termijn, niet over het weer van volgende week."},
+    {re: /\bnao\b|\bao\b|index|teleconn/i, wat: "Index-grafiek (NAO/AO)",
+     uitleg: "Een getal dat de grote drukverdeling samenvat. Een negatieve NAO of AO betekent minder westenwind en meer kans op kou uit het noorden of oosten in West-Europa. Positief betekent meestal zacht en nat winterweer."},
+  ];
+  const BEGRIPPEN = [
+    [/\bgfs\b/i, "GFS", "het Amerikaanse wereldweermodel; draait 4x per dag en is vaak wat te enthousiast over kou op lange termijn."],
+    [/\b(ecmwf|ecm)\b/i, "ECMWF", "het Europese weermodel uit Reading; gemiddeld het betrouwbaarste model."],
+    [/\beec\b|\beps\b/i, "EEC / EPS", "de ensemble- (pluim)versie van het Europese model."],
+    [/\bgefs\b/i, "GEFS", "de ensemble- (pluim)versie van het Amerikaanse GFS-model."],
+    [/\bicon\b/i, "ICON", "het Duitse weermodel."],
+    [/harmonie/i, "HARMONIE", "het fijnmazige model van het KNMI; goed voor de komende 2 dagen."],
+    [/\b(0|00|6|06|12|18)\s?z\b/i, "0z / 6z / 12z / 18z", "het tijdstip (in UTC) waarop een modelrun is gestart. 18z = 19:00 Nederlandse tijd."],
+    [/\b\d+\s?(u|uur|h)\b/i, "+ uur", "hoeveel uur vooruit de kaart kijkt. 168 uur = 7 dagen. Na zo'n 7 dagen wordt het snel onzeker."],
+    [/pluim/i, "pluim", "alle varianten van één model in één grafiek; laat zien hoe zeker de verwachting is."],
+    [/leden|lid\b/i, "leden", "de afzonderlijke varianten in een pluim."],
+    [/spreiding/i, "spreiding", "hoe ver de varianten uit elkaar liggen. Veel spreiding = onzeker."],
+    [/\bmlt\b/i, "MLT", "middellange termijn: ongeveer 4 tot 10 dagen vooruit."],
+    [/blok(kade|keer|king)|blocking/i, "blokkade", "een hardnekkig hogedrukgebied dat de normale westelijke stroming tegenhoudt; kan koude oostenwind brengen."],
+    [/hogedruk|\bhoog\b/i, "hogedruk", "gebied met hoge luchtdruk: meestal droog en rustig. Ten noorden van ons betekent het vaak oostenwind en kou."],
+    [/lagedruk|depressie|\blaag\b/i, "lagedruk", "gebied met lage luchtdruk: wind, wolken en neerslag; vanaf de oceaan brengt het zacht weer."],
+    [/beast from the east/i, "Beast from the East", "bijnaam voor een koude oostenwind uit Rusland/Siberië, zoals in 2018."],
+    [/scandinavi|scandi/i, "hogedruk boven Scandinavië", "het klassieke patroon voor ijswinters: de wind draait naar oost en koude landlucht stroomt naar ons toe."],
+    [/groenland|ijsland/i, "hogedruk bij IJsland/Groenland", "duwt de stroming naar het noorden; koude lucht kan dan vanuit het noorden naar ons komen."],
+    [/zonaal|zonal/i, "zonale stroming", "een stroming van west naar oost: zacht en nat weer voor Nederland."],
+    [/\bnao\b/i, "NAO", "Noord-Atlantische Oscillatie; negatief = meer kans op kou."],
+    [/polar\s?vortex|poolvortex|polarwirbel/i, "poolvortex", "de koude wervel hoog boven de Noordpool; verstoringen kunnen weken later kou brengen."],
+    [/\bssw\b/i, "SSW", "plotselinge stratosfeer-opwarming; kan de poolvortex breken."],
+    [/ijsdag/i, "ijsdag", "een dag waarop het de hele dag vriest (maximum onder 0 °C)."],
+    [/graaddag|vorstsom/i, "vorstsom", "opgetelde graden onder nul; vuistregel: rond 35 opgeteld kan er ondiep natuurijs liggen."],
+  ];
+  const libExplain = ctx => {
+    const k = KAARTEN.find(x => x.re.test(ctx || ""));
+    const terms = BEGRIPPEN.filter(([re]) => re.test(ctx || "")).map(([, t, d]) => [t, d]);
+    return {k, terms};
+  };
+  // "Leg uit"-knop bij een kaart: AI-uitleg als die er is, anders de bibliotheek
+  const explain = (u, ctx, always) => {
+    if (u && u.is_kaart === false) return null;
+    const {k, terms} = libExplain(ctx);
+    if (!u && !k && !terms.length && !always) return null;
+    const kids = [];
+    if (u) kids.push(el("strong", {text: u.wat}), el("p", {text: u.uitleg}),
+      u.ijs && u.ijs !== "niet van toepassing" ? el("span", {cls: "ijs " + (u.ijs === "goed voor ijs" ? "goed" : u.ijs === "slecht voor ijs" ? "slecht" : ""), text: u.ijs}) : null);
+    else {
+      const kk = k || {wat: "Weerkaart lezen", uitleg: "Kijk eerst welk model en welk tijdstip het is (bijv. 'GFS 18z 168 u' = Amerikaans model, 7 dagen vooruit). Blauw/paars is meestal koud of lagedruk, rood/oranje warm of hogedruk. Hoe verder vooruit, hoe onzekerder."};
+      kids.push(el("strong", {text: kk.wat}), el("p", {text: kk.uitleg}));
+    }
+    if (terms.length) kids.push(el("dl", {cls: "terms"}, terms.flatMap(([t, d]) => [el("dt", {text: t}), el("dd", {text: d})])));
+    kids.push(el("div", {cls: "muted", style: "font-size:.72rem;margin-top:4px", text: u ? "Uitleg door Claude (AI); kan zich vergissen." : "Uitleg uit de vaste bibliotheek, herkend aan de tekst bij het bericht."}));
+    const box = el("div", {cls: "uitleg", hidden: ""}, kids);
+    const b = el("button", {type: "button", cls: "explain", text: "💡 Leg uit"});
+    b.onclick = e => { e.preventDefault(); box.hidden = !box.hidden; b.textContent = box.hidden ? "💡 Leg uit" : "Verberg uitleg"; };
+    return el("div", {cls: "explainwrap"}, [b, box]);
+  };
   const fmtT = v => v == null ? "–" : (Math.round(v * 10) / 10).toLocaleString("nl-NL", {minimumFractionDigits: 1}) + "°";
   const tz = {timeZone: "Europe/Amsterdam"};
   const ago = iso => {
@@ -346,6 +470,10 @@ footer ul{padding-left:1.1em}
       $("icesub").textContent = ice.peak && ice.peak.cm > (ice.today ? ice.today.cm : 0)
         ? `Verwachte piek ${new Date(ice.peak.date).toLocaleDateString("nl-NL", {weekday: "short", day: "numeric", month: "short"})}: ~${ice.peak.cm} cm (${ice.labels[ice.peak_level].toLowerCase()})`
         : "Geen verdere ijsgroei verwacht in de komende dagen";
+      const pos = cm => Math.max(0, Math.min(100, (cm || 0) / 15 * 100)) + "%";
+      const nowCm = ice.today ? ice.today.cm : 0, peakCm = ice.peak ? ice.peak.cm : nowCm;
+      $("ib-now").style.left = pos(nowCm); $("ib-peak").style.left = pos(peakCm); $("ib-peak").hidden = !(peakCm > nowCm);
+      $("icebar").setAttribute("aria-label", `IJsdikte nu ongeveer ${nowCm} cm, verwachte piek ${peakCm} cm, op een schaal tot 15 cm`);
       const today = new Date().toLocaleDateString("sv-SE", tz);
       const rows = ice.rows.filter(r => r.date >= today).slice(0, 10);
       const T = $("days"); T.replaceChildren();
@@ -450,12 +578,13 @@ footer ul{padding-left:1.1em}
     for (const p of list) {
       const u = safeUrl(p.url);
       const fresh = lastSeen && p.time && p.time > lastSeen;
-      const title = u ? el("a", {href: u, target: "_blank", rel: "noopener", text: p.title || "(zonder titel)"}) : document.createTextNode(p.title || "");
+      const ttl = p.title_nl || p.title || "";
+      const title = u ? el("a", {href: u, target: "_blank", rel: "noopener", text: ttl || "(zonder titel)"}) : document.createTextNode(ttl);
       const pic = img(p.img) ? (u ? el("a", {cls: "pic", href: u, target: "_blank", rel: "noopener"}, [el("img", {src: p.img, alt: "", loading: "lazy"})]) : el("div", {cls: "pic"}, [el("img", {src: p.img, alt: "", loading: "lazy"})])) : el("span");
       FE.append(el("article", {cls: "post" + (fresh ? " fresh" : "")}, [
         el("time", {datetime: p.time || "", text: p.time ? ago(p.time) : (p.date || "")}),
-        el("div", {}, [el("div", {cls: "src", text: p.source + (p.comments ? ` · ${p.comments} reacties` : "")}), el("h3", {}, [title]), p.summary ? el("p", {text: p.summary.slice(0, 260)}) : null]),
-        pic
+        el("div", {}, [el("div", {cls: "src", text: p.source + (p.comments ? ` · ${p.comments} reacties` : "")}), el("h3", {}, [title]), p.summary ? tl(p, "summary", "p", {}, 260) : null, tlNote(p)]),
+        el("div", {cls: "picwrap"}, [pic, img(p.img) && (p.uitleg || (p.source || "").startsWith("@")) ? explain(p.uitleg, [p.title, p.summary].join(" ")) : null])
       ]));
     }
   }
@@ -478,11 +607,11 @@ footer ul{padding-left:1.1em}
         const src = img(im.img); if (!src) continue;
         const href = safeUrl(im.src);
         const pic = el("img", {src, alt: "Kaart of grafiek bij reactie van " + p.author, loading: "lazy"});
-        imgs.append(href ? el("a", {href, target: "_blank", rel: "noopener"}, [pic]) : pic);
+        imgs.append(el("figure", {}, [href ? el("a", {href, target: "_blank", rel: "noopener"}, [pic]) : pic, explain(im.uitleg, p.text, true)]));
       }
       F.append(el("article", {cls: "fpost" + (p.reply ? " reply" : "") + (fresh ? " fresh" : "")}, [
         el("div", {cls: "fmeta"}, [el("b", {text: p.author}), el("time", {datetime: p.time, text: ago(p.time)}), p.likes ? el("span", {text: "▲ " + p.likes}) : null, fresh ? el("span", {cls: "chip", text: "nieuw"}) : null]),
-        p.text ? el("p", {text: p.text}) : null,
+        p.text ? tl(p, "text", "p") : null, tlNote(p),
         imgs.children.length ? imgs : null
       ]));
     }
