@@ -793,13 +793,20 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     try { localStorage.setItem("ijsklok-seen", new Date().toISOString()); } catch (e) {}
   }
 
+  const NL_BOUNDS = [[50.85, 3.6], [53.45, 7.05]];
+  function fitIcemap() {
+    const m = window._icemap; if (!m) return;
+    m.invalidateSize();
+    if (window._icefit && $("icemap").offsetHeight) { m.fitBounds(NL_BOUNDS, {padding: [0, 0], animate: false}); window._icefit = false; }
+  }
+  window.addEventListener("resize", () => setTimeout(fitIcemap, 100));
   const TABS = ["overzicht", "kaart", "berichten", "forum"];
   function showTab() {
     const t = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "overzicht";
     document.querySelectorAll(".grid>[data-tab]").forEach(c => c.classList.toggle("active", c.dataset.tab === t));
     document.querySelectorAll(".tabbar a").forEach(a => { if (a.dataset.go === t) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     if (matchMedia("(max-width:900px)").matches) window.scrollTo(0, 0);
-    if (t === "kaart" && window._icemap) setTimeout(() => window._icemap.invalidateSize(), 50);
+    if (t === "kaart" && window._icemap) setTimeout(fitIcemap, 50);
   }
   window.addEventListener("hashchange", showTab);
   showTab();
@@ -854,7 +861,10 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     };
     if (window.L) {
       if (!window._icemap) {
-        window._icemap = L.map("icemap", {zoomSnap: 0.25, zoomDelta: 0.5}).fitBounds([[50.85, 3.6], [53.45, 7.05]], {padding: [0, 0]});
+        window._icemap = L.map("icemap", {zoomSnap: 0.25, zoomDelta: 0.5}).fitBounds(NL_BOUNDS, {padding: [0, 0]});
+        // kaart kan in een verborgen tab zijn aangemaakt (hoogte 0): dan later alsnog op Nederland zetten
+        window._icefit = !$("icemap").offsetHeight;
+        window._icemap.on("dragstart", () => { window._icefit = false; });
         L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 15, attribution: "© OpenStreetMap"}).addTo(window._icemap);
         window._icelayer = L.layerGroup().addTo(window._icemap);
       }
