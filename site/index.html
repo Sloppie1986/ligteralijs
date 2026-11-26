@@ -226,6 +226,11 @@ footer ul{padding-left:1.1em}
 .avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;flex:none;display:inline-grid;place-items:center;background:var(--accent);color:#fff;font:700 13px/1 var(--f-body)}
 .pby{display:flex;align-items:center;gap:7px}.pby strong{color:inherit}
 .prefphoto{display:flex;align-items:center;gap:12px}.prefphoto .avatar{width:48px;height:48px;font-size:20px}
+.prefset{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:0}.prefset legend{font-size:.8rem;color:var(--muted);padding:0 4px}
+.dform label.chk{flex-direction:row;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0;font-weight:500}.chk input[type=checkbox]{width:18px;height:18px;flex:none}
+.prefphoto[hidden]{display:none}
+.numin{width:4.5em!important;display:inline-block}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:50;max-width:min(92vw,520px);background:#0f2233;color:#fff;padding:10px 14px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.35);font-size:.9rem}
 .authpill{background:#1f7a4d;color:#fff;border-radius:999px;padding:4px 10px;font-weight:700;font-size:.8rem}
 .linkbtn{background:none;padding:0;border-radius:0;text-decoration:underline;color:var(--accent);font-weight:600}
 .pickhint{background:var(--accent-soft);border-radius:10px;padding:8px 12px;margin:0 0 10px;font-weight:600}
@@ -309,7 +314,7 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
         <div class="mapgrid">
           <div>
             <div id="icemap" role="region" aria-label="Kaart met gemeten ijsdikte"></div>
-            <div class="maplegend"><span><i class="lvl1"></i>onder 4,5 cm</span><span><i class="lvl2"></i>4,5 tot 8 cm</span><span><i class="lvl3"></i>8 cm of meer</span><span><i class="lvl0"></i>geen schatting</span><span><b style="background:#fff;color:#0f2233;border:1px solid var(--line);border-radius:4px;padding:0 4px">2,4</b> gemeten, gekleurd = prognose 9:00 morgen</span></div>
+            <div class="maplegend"><span><i class="lvl1"></i>onder 4,5 cm</span><span><i class="lvl2"></i>4,5 tot <span class="hiv">8</span> cm</span><span><i class="lvl3"></i><span class="hiv">8</span> cm of meer</span><span><i class="lvl0"></i>geen schatting</span><span><b style="background:#fff;color:#0f2233;border:1px solid var(--line);border-radius:4px;padding:0 4px">2,4</b> gemeten, gekleurd = prognose 9:00 morgen</span></div>
           </div>
           <div class="mlist" id="mlist"></div>
         </div>
@@ -425,6 +430,7 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     <div class="srow"><button type="button" id="logincancel" class="linkbtn">Annuleren</button><button type="submit">Stuur inloglink</button></div>
   </form>
 </dialog>
+<div id="toast" class="toast" role="status" hidden></div>
 <dialog id="prefdlg" aria-labelledby="h-pref">
   <form id="prefform" class="dform">
     <h2 id="h-pref">Mijn voorkeuren</h2>
@@ -433,6 +439,12 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     <div id="prefphoto" class="prefphoto"><span id="prefavatar"></span><label class="fileb">📷 Profielfoto kiezen<input type="file" name="avatar" accept="image/*"></label></div>
     <label>Mijn plek (de ijskaart opent hier)<input name="home" maxlength="60" placeholder="bijv. Loosdrecht" autocomplete="address-level2"></label>
     <label>Hoe ver ingezoomd<select name="zoom"><option value="12">Mijn dorp of stad</option><option value="10" selected>Omgeving (± 20 km)</option><option value="9">Regio (± 50 km)</option></select></label>
+    <fieldset class="prefset"><legend>Meldingen (zolang de app open staat of op de achtergrond draait)</legend>
+      <label class="chk"><input type="checkbox" name="notifyNear"> Nieuwe ijsmeting binnen <input name="radius" type="number" min="5" max="150" step="5" value="30" class="numin" aria-label="Straal in km"> km van mijn plek</label>
+      <label class="chk"><input type="checkbox" name="notifyReplies"> Reactie op mijn draadje in het forum</label>
+    </fieldset>
+    <label>Op de kaart pas blauw (veilig) vanaf<select name="hi"><option value="8">8 cm (advies)</option><option value="10">10 cm</option><option value="12">12 cm</option><option value="15">15 cm</option></select></label>
+    <label>Thema<select name="theme"><option value="">Zoals mijn telefoon</option><option value="light">Licht</option><option value="dark">Donker</option></select></label>
     <label>App opent op<select name="tab"><option value="">Weer &amp; ijs</option><option value="kaart">IJskaart</option><option value="berichten">Berichten</option><option value="forum">Forum</option></select></label>
     <p id="prefmsg" class="muted" role="status"></p>
     <div class="srow"><button type="button" id="prefcancel" class="linkbtn">Annuleren</button><button type="submit">Opslaan</button></div>
@@ -462,6 +474,8 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
 </nav>
 
 <script>
+  // thema uit de voorkeuren meteen toepassen
+  try { const th = (JSON.parse(localStorage.getItem("prefs") || "{}")).theme; if (th) document.documentElement.dataset.theme = th; } catch (e) {}
 (() => {
   const $ = id => document.getElementById(id);
   const el = (tag, attrs = {}, kids = []) => {
@@ -864,12 +878,33 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
   }
 
   // ---------------- ijskaart
-  const LVL = cm => cm == null ? 0 : cm < 4.5 ? 1 : cm < 8 ? 2 : 3;
+  const HI = () => +prefs().hi || 8;   // eigen veiligheidsgrens (standaard 8 cm)
+  const LVL = cm => cm == null ? 0 : cm < 4.5 ? 1 : cm < HI() ? 2 : 3;
+  // melding bij nieuwe metingen binnen de straal rond 'mijn plek' (zolang de app open staat)
+  window.iceNotify = (title, body, tag) => {
+    const show = () => navigator.serviceWorker && navigator.serviceWorker.ready
+      .then(r => r.showNotification(title, {body, tag, icon: "icon-192.png", badge: "icon-192.png"}))
+      .catch(() => new Notification(title, {body, tag}));
+    if ("Notification" in window && Notification.permission === "granted") show();
+    const t = $("toast"); if (t) { t.textContent = `${title}: ${body}`; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => t.hidden = true, 12000); }
+  };
+  function nearAlerts(pts) {
+    const P = prefs(), h = P.home;
+    if (!P.notifyNear || !h || !h.lat) return;
+    const R = +P.radius || 30, kmTo = (a, b) => { const r = Math.PI / 180, x = (b.lon - a.lon) * r * Math.cos((a.lat + b.lat) / 2 * r); return 6371 * Math.hypot(x, (b.lat - a.lat) * r); };
+    let seen; try { seen = JSON.parse(localStorage.getItem("seenNear") || "null"); } catch (e) { seen = null; }
+    const first = !seen; seen = seen || [];
+    const fresh = pts.filter(p => !seen.includes(p.id || p.place + "|" + p.time) && kmTo(h, p) <= R);
+    for (const p of first ? [] : fresh.slice(0, 3))
+      window.iceNotify(`Nieuwe ijsmeting bij ${p.place}`, `${(p.min + "").replace(".", ",")} cm gemeten, ${Math.round(kmTo(h, p))} km van ${h.name} (${p.source})`, "near-" + (p.id || p.place));
+    try { localStorage.setItem("seenNear", JSON.stringify([...seen, ...fresh.map(p => p.id || p.place + "|" + p.time)].slice(-300))); } catch (e) {}
+  }
   const nl1 = v => v == null ? "–" : (+v).toLocaleString("nl-NL", {maximumFractionDigits: 1});
   const ago2 = t => {
     const h = (Date.now() - new Date(t)) / 3600e3;
     return h < 1 ? Math.max(1, Math.round(h * 60)) + " min geleden" : h < 24 ? Math.round(h) + " uur geleden" : Math.round(h / 24) + " dag" + (h >= 36 ? "en" : "") + " geleden";
   };
+  window.renderIcemap = () => renderMap();
   function renderMap() {
     const k = data && data.ijskaart;
     window._icedata = data;
@@ -963,6 +998,8 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
       };
       list.append(row);
     }
+    document.querySelectorAll(".hiv").forEach(n => n.textContent = String(HI()).replace(".", ","));
+    try { nearAlerts(pts); } catch (e) { console.error(e); }
     window.dispatchEvent(new Event("icemap-rendered"));
   }
 
