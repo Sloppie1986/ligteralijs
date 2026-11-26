@@ -204,6 +204,7 @@ footer ul{padding-left:1.1em}
 .mrow .ms{font-size:.82rem;color:var(--muted)}
 .mrow q{grid-column:1 / -1;font-size:.85rem;color:var(--muted)}
 .lvl0{background:#7d8b96}.lvl1{background:#c0532c}.lvl2{background:#d08a00}.lvl3{background:#1d7fc4}
+.forumrules ul{margin:6px 0 8px;padding-left:20px}.forumrules li{margin:4px 0}
 .gpin{font:700 11px/1 var(--f-body);padding:3px 5px;border-radius:6px;color:#fff;border:1px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);white-space:nowrap}
 .gpin.frost{background:#1d5fa8}.gpin.thaw{background:#b4561e}
 .groundbtn{background:#fff;color:#0f2233;border:0;font:600 12px/1 var(--f-body);padding:7px 9px;cursor:pointer}
@@ -375,8 +376,21 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     <div class="col forumcol" data-tab="forum">
       <section class="panel" data-samen hidden aria-labelledby="h-samen">
         <header><h2 id="h-samen">Schaatsforum</h2><span class="samen-auth"></span></header>
+        <details class="more forumrules"><summary>Welkom! Lees even de huisregels</summary>
+          <p>Welkom bij het schaatsforum. Hier delen we wat we zelf zien op het ijs, zodat iedereen weet waar het kan en waar (nog) niet.</p>
+          <ul>
+            <li><strong>Eén draadje per locatie.</strong> Zet de plaats en het water in het onderwerp, bijvoorbeeld "Loosdrecht – Hol". Bestaat er al een draadje voor die plek, reageer dan daar.</li>
+            <li><strong>Zeg wat je zelf gezien of gemeten hebt</strong>, met tijdstip. Gemeten ijsdikte kun je ook als meting doorgeven op de IJskaart.</li>
+            <li><strong>Foto's zijn welkom</strong>, maar zonder herkenbare mensen of kentekens.</li>
+            <li><strong>Waarschuw voor gevaar</strong>: wakken, scheuren, stroming, riet, kwel en dun ijs bij bruggen.</li>
+            <li><strong>Moedig niemand aan het ijs op te gaan</strong> als het ijs niet is vrijgegeven. Geen "het houdt wel" zonder meting.</li>
+            <li><strong>Blijf vriendelijk</strong>, ook als je het oneens bent. Geen reclame, politiek of persoonlijke aanvallen.</li>
+            <li><strong>Respecteer eigenaren en verenigingen</strong>: afgesloten banen en particulier water blijven dicht tot de beheerder ze vrijgeeft.</li>
+          </ul>
+          <p class="note">Berichten die hier niet passen, kan de beheerder verbergen of verwijderen. Alles wat je plaatst is voor iedereen zichtbaar; je bent zelf verantwoordelijk voor je bericht en je eigen veiligheid op het ijs.</p>
+        </details>
         <form id="newthread" class="sform">
-          <input name="title" maxlength="120" placeholder="Onderwerp" aria-label="Onderwerp">
+          <input name="title" maxlength="120" placeholder="Plaats en water, bijv. Loosdrecht – Hol" aria-label="Onderwerp">
           <textarea name="body" rows="3" maxlength="4000" required placeholder="Wat wil je delen?" aria-label="Bericht"></textarea>
           <div class="srow"><label class="fileb">📷 Foto<input type="file" name="photo" accept="image/*"></label><button type="submit">Nieuwe draad</button></div>
         </form>
