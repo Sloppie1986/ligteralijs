@@ -17,30 +17,6 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Bronnen ruw bekijken
+      - name: Test
         run: |
-          mkdir -p probe
-          UA="Mozilla/5.0 (schaatsmonitor)"
-          for u in https://www.weerwoord.be/ https://www.weerwoord.be/rss https://www.weerwoord.be/feed https://ijsclubvlietland.nl/feed/ \
-                   https://omroepleeuwarden.nl/feed "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?q=Rijnsburg&fq=type:woonplaats&rows=1" \
-                   https://www.rtvutrecht.nl/rss/index.xml https://www.omroepwest.nl/rss/index.xml https://www.nhnieuws.nl/rss https://www.omroepgelderland.nl/rss \
-                   https://www.rtvnoord.nl/rss/index.xml https://www.omroepbrabant.nl/rss https://feeds.nos.nl/nosnieuwsbinnenland https://www.rtvoost.nl/rss/index.xml \
-                   https://www.rtvdrenthe.nl/rss/index.xml https://www.omropfryslan.nl/rss/index.xml https://www.weeronline.nl/nieuws/rss https://www.weerplaza.nl/rss/ \
-                   https://www.natuurijswijzer.nl/feed/ https://www.schaatsen.nl/feed/ https://nieuwsuitberkelland.nl/feed/ https://ijsclubloosdrecht.nl/ ; do
-            f=probe/$(echo "$u" | md5sum | cut -c1-8)
-            code=$(curl -sL -m 20 -A "$UA" -o $f -w "%{http_code} %{content_type}" "$u")
-            echo "== $code $(wc -c <$f) $u"
-          done
-      - name: Weerwoord python
-        run: python3 tools/probe.py
-      - name: Weerwoord structuur
-        run: |
-          f=probe/$(echo "https://www.weerwoord.be/" | md5sum | cut -c1-8)
-          grep -o -i '.\{300\}ijs.\{300\}' $f | head -8
-          echo ----; grep -o -i '<link[^>]*>' $f | head
-      - name: Vlietland feed
-        run: |
-          f=probe/$(echo "https://ijsclubvlietland.nl/feed/" | md5sum | cut -c1-8)
-          head -c 3000 $f
-      - name: PDOK
-        run: cat probe/$(echo "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free?q=Rijnsburg&fq=type:woonplaats&rows=1" | md5sum | cut -c1-8) | head -c 1500
+          python3 tools/probe.py 2>&1 | cut -c1-6000

@@ -15,6 +15,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 /* Layout: één kolom op telefoon; op breed scherm links 'nu + ijs', rechts de berichtenstroom. */
 :root{
@@ -178,6 +179,30 @@ footer ul{padding-left:1.1em}
 .uitleg .ijs.goed{background:var(--accent-soft);color:var(--frost)} .uitleg .ijs.slecht{background:var(--bad-bg);color:var(--thaw)}
 .terms{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:8px 0 0;font-size:.8rem}
 .terms dt{font-weight:700;white-space:nowrap} .terms dd{margin:0;color:var(--muted)}
+
+/* ijskaart */
+.grid>.mapcol{grid-column:1 / -1}
+.mapgrid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:16px;align-items:start}
+@media (max-width:1100px){.mapgrid{grid-template-columns:minmax(0,1fr)}}
+#icemap{height:520px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);z-index:0}
+@media (max-width:900px){#icemap{height:62vh}}
+.maplegend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--muted);margin:8px 0 0}
+.maplegend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px;border:1px solid rgba(0,0,0,.25)}
+.mwarn{background:var(--warn-bg);color:var(--fg);border-radius:10px;padding:10px 12px;font-size:.9rem;margin:0 0 12px}
+.mwarn strong{color:var(--warn)}
+.mlist{display:flex;flex-direction:column;gap:8px;max-height:560px;overflow:auto}
+@media (max-width:1100px){.mlist{max-height:none}}
+.mrow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--solid);cursor:pointer;text-align:left;font:inherit;color:inherit}
+.mrow:hover{border-color:var(--accent)}
+.mval{font:700 1.5rem/1 var(--f-display);min-width:64px;text-align:center;padding:6px 4px;border-radius:8px;color:#fff}
+.mval small{display:block;font:600 .68rem var(--f-body);opacity:.9;margin-top:3px}
+.mrow .mt{font-weight:600}
+.mrow .ms{font-size:.82rem;color:var(--muted)}
+.mrow q{grid-column:1 / -1;font-size:.85rem;color:var(--muted)}
+.lvl0{background:#7d8b96}.lvl1{background:#c0532c}.lvl2{background:#d08a00}.lvl3{background:#1d7fc4}
+.mpin{display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font:700 12px/1 var(--f-body);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.leaflet-popup-content{font:14px/1.4 var(--f-body)}
+.leaflet-popup-content q{display:block;color:#52677a;margin:4px 0}
 /* telefoon: één tab tegelijk, vaste tabbalk onderin */
 .tabbar{display:none}
 .mini{display:none}
@@ -205,7 +230,7 @@ footer ul{padding-left:1.1em}
   .post .pic{width:100%;order:3}
   .post .pic img{max-height:260px;object-fit:cover}
   .forum{max-height:none;overflow:visible}
-  .tabbar{display:grid;grid-template-columns:repeat(3,1fr);position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+  .tabbar{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));box-shadow:0 -4px 16px rgba(0,0,0,.06)}
   .tabbar a{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:10px;text-decoration:none;color:var(--muted);font:600 .78rem var(--f-body)}
   .tabbar a svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .tabbar a[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
@@ -230,6 +255,20 @@ footer ul{padding-left:1.1em}
   <div id="alerts" class="alerts"></div>
 
   <div class="grid">
+    <div class="col mapcol" data-tab="kaart">
+      <section class="panel" aria-labelledby="h-map">
+        <header><h2 id="h-map">Gemeten ijs in Nederland</h2><span class="muted" id="mapmeta"></span></header>
+        <p class="mwarn"><strong>8 cm is echt het minimum</strong>, en dan alleen als een ijsmeester of ijsclub akkoord geeft. Rond 4,5 cm houdt stevig, helder ijs in theorie één schaatser, maar dat is jouw eigen afweging en jouw eigen risico. Bij stromend water, riet, bruggen en wakken is het ijs dunner.</p>
+        <div class="mapgrid">
+          <div>
+            <div id="icemap" role="region" aria-label="Kaart met gemeten ijsdikte"></div>
+            <div class="maplegend"><span><i class="lvl1"></i>onder 4,5 cm</span><span><i class="lvl2"></i>4,5 tot 8 cm</span><span><i class="lvl3"></i>8 cm of meer</span><span><i class="lvl0"></i>geen schatting</span><span>Kleur en getal = verwacht morgenochtend 9:00</span></div>
+          </div>
+          <div class="mlist" id="mlist"></div>
+        </div>
+        <p class="note" id="mapnote"></p>
+      </section>
+    </div>
     <div class="col active" data-tab="overzicht">
       <section class="panel" aria-labelledby="h-now">
         <header><h2 id="h-now">Nu in De Bilt</h2><span class="muted" id="provider"></span></header>
@@ -306,7 +345,8 @@ footer ul{padding-left:1.1em}
     <ul>
       <li>Verwachting: Open-Meteo (KNMI- en ECMWF-modellen), bij storing MET Norway. Waarschuwingen: KNMI via MeteoAlarm. Metingen en weerbericht: Buienradar.</li>
       <li>Berichten: NoodweerBenelux (artikelen en het kaartenforum), Wintersportweerman, Kai Zorn Wetter (YouTube), Sneeuwhoogte.nl, Meteo Kortenhoef / De Arend en de weermannen op X (via de X API).</li>
-      <li>De gegevens worden elk uur opgehaald. Deze pagina kijkt elke 15 minuten of er een nieuwe versie is.</li>
+      <li>IJskaart: Weerwoord-forum, IJsclub Vlietland, Weerstation De Arend, NOS, regionale omroepen en natuurijssites; plaatsen via PDOK, temperatuur via Open-Meteo, kaart © OpenStreetMap.</li>
+      <li>De gegevens worden elk kwartier opgehaald. Deze pagina kijkt elke 15 minuten of er een nieuwe versie is.</li>
     </ul>
   </footer>
 </div>
@@ -314,6 +354,7 @@ footer ul{padding-left:1.1em}
 <nav class="tabbar" aria-label="Onderdelen">
   <a href="#overzicht" data-go="overzicht" aria-current="page"><svg viewBox="0 0 24 24"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7"/><path d="M9 3.5l3 2 3-2M9 20.5l3-2 3 2"/></svg>Weer &amp; ijs</a>
   <a href="#berichten" data-go="berichten"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg>Berichten<span class="badge" id="b-berichten" hidden></span></a>
+  <a href="#kaart" data-go="kaart"><svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>IJskaart</a>
   <a href="#forum" data-go="forum"><svg viewBox="0 0 24 24"><path d="M3 6h12v8H7l-4 3z"/><path d="M15 9h6v8l-3-2h-6v-1"/></svg>Forum<span class="badge" id="b-forum" hidden></span></a>
 </nav>
 
@@ -684,12 +725,13 @@ footer ul{padding-left:1.1em}
     try { localStorage.setItem("ijsklok-seen", new Date().toISOString()); } catch (e) {}
   }
 
-  const TABS = ["overzicht", "berichten", "forum"];
+  const TABS = ["overzicht", "kaart", "berichten", "forum"];
   function showTab() {
     const t = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "overzicht";
     document.querySelectorAll(".grid>[data-tab]").forEach(c => c.classList.toggle("active", c.dataset.tab === t));
     document.querySelectorAll(".tabbar a").forEach(a => { if (a.dataset.go === t) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     if (matchMedia("(max-width:900px)").matches) window.scrollTo(0, 0);
+    if (t === "kaart" && window._icemap) setTimeout(() => window._icemap.invalidateSize(), 50);
   }
   window.addEventListener("hashchange", showTab);
   showTab();
@@ -703,8 +745,68 @@ footer ul{padding-left:1.1em}
     const t = bs ? bs.temp : ((data.forecast || {}).current || {}).temperature_2m;
     if (t != null) M.append(document.createTextNode(fmtT(t)), el("span", {text: data.ice ? data.ice.labels[data.ice.level] : ""}));
   }
+
+  // ---------------- ijskaart
+  const LVL = cm => cm == null ? 0 : cm < 4.5 ? 1 : cm < 8 ? 2 : 3;
+  const nl1 = v => v == null ? "–" : (+v).toLocaleString("nl-NL", {maximumFractionDigits: 1});
+  const ago = t => {
+    const h = (Date.now() - new Date(t)) / 3600e3;
+    return h < 1 ? Math.max(1, Math.round(h * 60)) + " min geleden" : h < 24 ? Math.round(h) + " uur geleden" : Math.round(h / 24) + " dag" + (h >= 36 ? "en" : "") + " geleden";
+  };
+  function renderMap() {
+    const k = data && data.ijskaart;
+    if (!k) return;
+    const pts = (k.points || []).slice().sort((a, b) => (b.morning_cm ?? b.cm) - (a.morning_cm ?? a.cm));
+    const tgt = k.target ? new Date(k.target).toLocaleString("nl-NL", {...tz, weekday: "short", hour: "2-digit", minute: "2-digit"}) : "morgenochtend";
+    $("mapmeta").textContent = `${pts.length} plekken · laatste 3 dagen`;
+    $("mapnote").textContent = `Metingen uit het Weerwoord-forum, het ijsbericht van IJsclub Vlietland, Weerstation De Arend en nieuwsberichten van NOS, regionale omroepen en natuurijssites. Ze worden elk kwartier opnieuw opgehaald. Verwachting voor ${tgt}: de laagste gemeten waarde, aangegroeid met de uurtemperatuur op die plek (Open-Meteo) volgens de formule van Stefan. Sneeuw op het ijs, wind, bewolking, stroming en kwel tellen niet mee, dus het kan flink anders uitvallen. Een plaatsnaam uit een bericht wordt op het midden van die plaats gezet, niet op de exacte sloot.`;
+    const popup = p => {
+      const d = document.createElement("div");
+      const when = new Date(p.time).toLocaleString("nl-NL", {...tz, weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
+      const u = safeUrl(p.url);
+      d.append(el("strong", {text: p.place}), el("div", {text: `Gemeten ${p.min === p.max ? nl1(p.min) : nl1(p.min) + "–" + nl1(p.max)} cm · ${when}`}),
+        p.morning_cm != null ? el("div", {text: `Nu ~${nl1(p.now_cm)} cm · ${tgt} ~${nl1(p.morning_cm)} cm (+${nl1(p.night_gain)}${p.tmin != null ? ", min " + nl1(p.tmin) + " °C" : ""})`}) : null,
+        el("q", {text: p.quote}),
+        u ? el("a", {href: u, target: "_blank", rel: "noopener", text: p.source + (p.who ? " · " + p.who : "")}) : el("span", {text: p.source}));
+      return d;
+    };
+    if (window.L) {
+      if (!window._icemap) {
+        window._icemap = L.map("icemap", {zoomSnap: 0.5}).setView([52.2, 5.3], 7);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 15, attribution: "© OpenStreetMap"}).addTo(window._icemap);
+        window._icelayer = L.layerGroup().addTo(window._icemap);
+      }
+      window._icelayer.clearLayers();
+      window._icemarkers = {};
+      for (const p of pts.slice().reverse()) {
+        const v = p.morning_cm ?? null;
+        const size = 30;
+        const icon = L.divIcon({className: "", iconSize: [size, size], iconAnchor: [size / 2, size / 2],
+          html: `<div class="mpin lvl${LVL(v)}" style="width:${size}px;height:${size}px">${v == null ? "?" : nl1(v)}</div>`});
+        const m = L.marker([p.lat, p.lon], {icon, title: `${p.place}: ${nl1(p.cm)} cm gemeten`}).bindPopup(() => popup(p));
+        m.addTo(window._icelayer);
+        window._icemarkers[p.place + "|" + p.source] = m;
+      }
+    }
+    const list = $("mlist"); list.replaceChildren();
+    if (!pts.length) list.append(el("p", {cls: "muted", text: "Nog geen metingen gevonden in de afgelopen 3 dagen."}));
+    for (const p of pts) {
+      const v = p.morning_cm;
+      const row = el("button", {cls: "mrow", type: "button"}, [
+        el("div", {cls: "mval lvl" + LVL(v)}, [document.createTextNode(v == null ? nl1(p.cm) : nl1(v)), el("small", {text: v == null ? "gemeten" : "9:00 morgen"})]),
+        el("div", {}, [el("div", {cls: "mt", text: p.place}),
+          el("div", {cls: "ms", text: `${p.min === p.max ? nl1(p.min) : nl1(p.min) + "–" + nl1(p.max)} cm gemeten, ${ago(p.time)} · ${p.source}${p.who ? " (" + p.who + ")" : ""}` +
+            (v != null ? ` · vannacht +${nl1(p.night_gain)} cm` : "")})]),
+        el("q", {text: p.quote})]);
+      row.onclick = () => {
+        const m = (window._icemarkers || {})[p.place + "|" + p.source];
+        if (m && window._icemap) { if (matchMedia("(max-width:1100px)").matches) $("icemap").scrollIntoView({behavior: "smooth"}); window._icemap.setView(m.getLatLng(), 11); m.openPopup(); }
+      };
+      list.append(row);
+    }
+  }
   const _render = render;
-  render = function () { _render(); badges(); };
+  render = function () { _render(); badges(); try { renderMap(); } catch (e) { console.error(e); } };
 
   // installeerbare app (PWA)
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
@@ -756,12 +858,14 @@ footer ul{padding-left:1.1em}
     });
   })();
 
+  window.addEventListener("leaflet-ready", () => { if (data) renderMap(); });
   $("reload").onclick = load;
   load().then(() => setTimeout(markSeen, 5000));
   setInterval(load, 15 * 60 * 1000);
   setInterval(() => { if (data) { renderFeed(); renderForum(); } }, 60 * 1000);
 })();
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" onload="window.dispatchEvent(new Event('leaflet-ready'))"></script>
 
 </body>
 </html>
