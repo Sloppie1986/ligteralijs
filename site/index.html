@@ -141,11 +141,6 @@ button:hover{filter:brightness(.96)}
 .ai p{margin:4px 0} .ai summary{cursor:pointer;color:var(--muted);font-size:.8rem;margin:4px 0}
 .ai-item{font-size:.8rem;padding:2px 0} .ai-item.positief{color:var(--frost)} .ai-item.negatief{color:var(--thaw)}
 .bar{height:6px;border-radius:3px;background:var(--frost);margin:0 auto}
-.lakes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
-.lake{background:var(--sunk);border-radius:8px;padding:8px 10px;font-size:.9rem}
-.lake b{display:block;font-weight:600}
-.lake .st{font-size:.85rem}
-.lake.open .st{color:var(--ok);font-weight:600}
 .filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .filters button{background:var(--sunk);color:var(--fg);font-weight:600}
 .filters button[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
@@ -386,12 +381,6 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
         <p class="note">Temperaturen per dag = gemiddelde van de 3 beste modellen die die dag dekken. De eerste 2 dagen zijn dat de fijnmazige modellen HARMONIE (KNMI), ICON-D2 (Duitsland) en AROME (Frankrijk); die rekenen niet verder vooruit. Daarna ECMWF, ICON-EU en UKMO, en na een week ECMWF en GFS. Spreiding = hoeveel de modellen het oneens zijn over de daggemiddelde temperatuur (groen = eens, rood = onzeker). Houd je vinger op een cijfer voor de waarde per model.</p>
         <p class="note">IJsdikte geschat uit opgetelde vorstgraden (daggemiddelde onder 0 °C) voor stilstaand, ondiep water zonder sneeuw. Ga nooit het ijs op zonder bericht van de ijsclub of ijsmeester.</p>
         </details>
-      </section>
-
-      <section class="panel" aria-labelledby="h-lakes">
-        <header><h2 id="h-lakes">Plassen Wijdemeren</h2><a id="arendlink" href="https://weerstationdearend.nl/" target="_blank" rel="noopener">Meteo Kortenhoef / De Arend</a></header>
-        <p id="arendnews" style="margin:0 0 10px"></p>
-        <div class="lakes" id="lakes"></div>
       </section>
 
       <section class="panel" aria-labelledby="h-report">
@@ -803,16 +792,6 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
         el("span", {cls: "tpart", text: "berichten"}),
         el("span", {text: (m.n ? `${m.n} in 6 uur: ${m.cold} over kou/ijs, ${m.mild} over zacht weer` : "geen nieuwe berichten") + (h.ai ? ` · Claude: ${h.ai.effect_ijsdikte} voor ijs` : "")})]));
     }
-
-    // De Arend
-    const ar = d.dearend || {};
-    $("arendnews").textContent = ar.news || "";
-    const L = $("lakes"); L.replaceChildren();
-    for (const l of ar.ice || []) {
-      const open = !/geen ijs|gesloten/i.test(l.status);
-      L.append(el("div", {cls: "lake" + (open ? " open" : "")}, [el("b", {text: `${l.place} · ${l.spot}`}), el("span", {cls: "st", text: l.status})]));
-    }
-    if (!(ar.ice || []).length) L.append(el("div", {cls: "muted", text: "Geen ijsstatus beschikbaar."}));
 
     // weerbericht
     const rep = (d.buienradar && d.buienradar.report) || {};
