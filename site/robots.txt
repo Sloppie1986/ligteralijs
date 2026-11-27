@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sloppie1986.github.io/ligteralijs/sitemap.xml

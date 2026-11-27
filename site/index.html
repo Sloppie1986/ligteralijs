@@ -1,7 +1,32 @@
 <!doctype html>
 <html lang="nl">
 <head>
-<title>Ligt er al ijs?</title>
+<title>Ligt er al ijs? Natuurijs, schaatsweer en ijsdikte in Nederland</title>
+<meta name="description" content="Ligt er al ijs? De verbinder voor al het nieuws en de achtergrond rondom natuurijs in Nederland: weermannen, schaatsforum, gemeten ijsdiktes, ijsclubs en de vorstverwachting op één plek. Elk kwartier bijgewerkt.">
+<meta name="keywords" content="natuurijs, schaatsen, ijs, ijsdikte, schaatsweer, vorst, ijsbaan, ijsclub, Elfstedentocht, weerbericht, weermannen, ligt er al ijs">
+<link rel="canonical" href="https://sloppie1986.github.io/ligteralijs/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nl_NL">
+<meta property="og:site_name" content="Ligt er al ijs?">
+<meta property="og:title" content="Ligt er al ijs? Natuurijs en schaatsweer in Nederland">
+<meta property="og:description" content="De verbinder voor al het nieuws en de achtergrond rondom natuurijs: weermannen, schaatsforum, gemeten ijsdiktes en vorstverwachting op één plek.">
+<meta property="og:url" content="https://sloppie1986.github.io/ligteralijs/">
+<meta property="og:image" content="https://sloppie1986.github.io/ligteralijs/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Ligt er al ijs? Natuurijs, vorst en ijsdikte in Nederland">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ligt er al ijs? Natuurijs en schaatsweer in Nederland">
+<meta name="twitter:description" content="De verbinder voor al het nieuws en de achtergrond rondom natuurijs in Nederland.">
+<meta name="twitter:image" content="https://sloppie1986.github.io/ligteralijs/og-image.png">
+<!-- google-site-verification: hier komt de code uit Google Search Console -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+ {"@type":"WebSite","name":"Ligt er al ijs?","alternateName":"Ligteralijs","url":"https://sloppie1986.github.io/ligteralijs/","inLanguage":"nl-NL"},
+ {"@type":"WebApplication","name":"Ligt er al ijs?","url":"https://sloppie1986.github.io/ligteralijs/","applicationCategory":"WeatherApplication","operatingSystem":"Web, Android, iOS","inLanguage":"nl-NL","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"description":"Ligt er al ijs? De verbinder voor al het nieuws en de achtergrond rondom natuurijs in Nederland: weermannen, schaatsforum, gemeten ijsdiktes, ijsclubs en de vorstverwachting op één plek. Elk kwartier bijgewerkt.","image":"https://sloppie1986.github.io/ligteralijs/og-image.png","areaServed":{"@type":"Country","name":"Nederland"},"sameAs":["https://www.instagram.com/ligteralijs/"]}
+]}
+</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#14608f">
@@ -177,6 +202,7 @@ button:hover{filter:brightness(.96)}
 .report{white-space:pre-line;font-size:.95rem;max-height:16em;overflow:auto}
 footer{margin-top:28px;font-size:.85rem;color:var(--muted);max-width:75ch}
 footer ul{padding-left:1.1em}
+.about-h{font:600 1rem var(--f-body);margin:0 0 .3em;color:var(--fg)}
 .empty{padding:20px;text-align:center;color:var(--muted)}
 .linkbtn{background:none;padding:0;border-radius:0;font:600 .78rem var(--f-body);color:var(--accent);text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
 .tlnote{margin-top:4px}
@@ -333,7 +359,7 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
   <div class="top">
     <div>
       <h1><svg class="flake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M12 2l-2 2M12 2l2 2M12 22l-2-2M12 22l2-2M3.3 7l2.7.2M3.3 7l1.1 2.5M20.7 17l-2.7-.2M20.7 17l-1.1-2.5M3.3 17l1.1-2.5M3.3 17l2.7-.2M20.7 7l-1.1 2.5M20.7 7l-2.7.2"/></svg>Ligt er al ijs?</h1>
-      <p class="muted">Weer, vorst, natuurijs en de laatste berichten voor Midden-Nederland, op één plek.</p>
+      <p class="muted">Weer, vorst, natuurijs en de laatste berichten voor heel Nederland, op één plek.</p>
     </div>
     <div class="mini" id="mini" aria-hidden="true"></div>
     <div class="stamp"><span><span id="dot" class="dot"></span> <span id="updated">Laden…</span></span><span class="btns"><button id="install" type="button" hidden>📲 Installeer app</button><button id="bell" type="button" hidden>🔔 Meldingen aan</button><button id="reload" type="button" aria-label="Nu verversen">↻<span class="rtxt"> Nu verversen</span></button><button id="mebtn" type="button" class="mebtn" data-samen hidden>Inloggen</button></span></div>
@@ -450,6 +476,8 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
   </div>
 
   <footer>
+    <h2 class="about-h">Over Ligt er al ijs?</h2>
+    <p>Ligt er al ijs? is de verbinder voor al het nieuws en de achtergrond rondom natuurijs in Nederland. Alles wat schaatsers willen weten staat op één plek: de vorstverwachting en de IJsindicator, gemeten ijsdiktes op de kaart, berichten van weermannen op X, het Noodweer-forum, het schaatsforum en nieuws van ijsclubs. Handig om te zien of er geschaatst kan worden op sloten, plassen en ijsbanen, van Friesland tot Brabant. Gratis, zonder reclame, te installeren als app en te volgen via Instagram @ligteralijs.</p>
     <p>Bronnen: KNMI, Open-Meteo, MET Norway, Buienradar, MeteoAlarm, NoodweerBenelux, Wintersportweerman, Kai Zorn, Sneeuwhoogte.nl, Weerstation De Arend, X, Weerwoord, IJsclub Vlietland, NOS, regionale omroepen, PDOK, © OpenStreetMap. Elk kwartier bijgewerkt.</p>
   </footer>
 </div>
