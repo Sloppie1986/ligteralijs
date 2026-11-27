@@ -732,7 +732,8 @@ def buzz(cur, prev):
 
 # ---------------------------------------------------------------- alerts
 def alerts(cur, prev):
-    out = []
+    out, links = [], []   # links[i]: waar een tik op alert i naartoe gaat (bron-URL of #tab)
+    cur["alert_links"] = links
     if not prev:
         cur["buzz_hist"] = []
         return out
@@ -740,35 +741,45 @@ def alerts(cur, prev):
     for w in cur.get("warnings") or []:
         if (w["event"], w["onset"]) not in pw:
             out.append(f"Nieuwe waarschuwing ({w['level']}): {w['headline'] or w['event']}")
+            links.append("#overzicht")
     ci, pi = cur.get("ice") or {}, prev.get("ice") or {}
     if ci and pi and ci.get("peak_level", 0) != pi.get("peak_level", 0) and max(ci.get("peak_level", 0), pi.get("peak_level", 0)) >= 2:
         lab = ci["labels"][ci["peak_level"]]
         out.append(f"IJsverwachting veranderd: piek nu '{lab}' (~{ci['peak']['cm']} cm rond {ci['peak']['date']})")
+        links.append("#overzicht")
     def first_frost(x):
         rows = (x.get("ice") or {}).get("rows") or []
         return next((r["date"] for r in rows if r["forecast"] and r["tmin"] is not None and r["tmin"] <= -5), None)
     a, b = first_frost(cur), first_frost(prev)
     if a and a != b:
         out.append(f"Matige/strenge nachtvorst (≤ -5 °C) verwacht vanaf {a}")
+        links.append("#overzicht")
     pe = {(i["place"], i["spot"]): i["status"] for i in ((prev.get("dearend") or {}).get("ice") or [])}
     for i in (cur.get("dearend") or {}).get("ice") or []:
         old = pe.get((i["place"], i["spot"]))
         if old and old != i["status"]:
             out.append(f"De Arend: {i['place']} {i['spot']} nu '{i['status']}' (was '{old}')")
+            links.append((cur.get("dearend") or {}).get("url") or "#overzicht")
     pn = (prev.get("dearend") or {}).get("news")
     cn = (cur.get("dearend") or {}).get("news")
     if cn and pn and cn != pn:
         out.append(f"Nieuw schaatsnieuws Wijdemeren: {cn[:160]}")
-    out += buzz(cur, prev)
+        links.append("https://weerstationdearend.nl/schaatsnieuws/")
+    bz = buzz(cur, prev)
+    out += bz
+    links += [("#forum" if "orum" in b else "#berichten") for b in bz]
     pf, cf = prev.get("forum") or {}, cur.get("forum") or {}
     if cf.get("url") and pf.get("url") and cf["url"] != pf["url"]:
         out.append(f"Nieuwe kaartendraad op Noodweer: {cf.get('title')}")
+        links.append("#forum")
     skate = re.compile(r"schaats|natuurijs|ijsvloer|elfsteden|ijsbaan|Eis\b|Glatteis", re.I)
     seen = {i.get("url") for i in prev.get("posts") or []}
     recent = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=6)).isoformat()[:19]
     for p in cur.get("posts") or []:
         if p.get("url") not in seen and (p.get("time") or "") >= recent and skate.search((p.get("title") or "") + " " + (p.get("summary") or "")):
             out.append(f"Nieuw schaatsbericht bij {p['source']}: {p['title']}")
+            links.append(p.get("url") or "#berichten")
+    cur["alert_links"] = links
     return out
 
 
@@ -842,6 +853,7 @@ def main():
         for m in new[:3]:
             val = (f'{m["min"]:g}' if m["min"] == m["max"] else f'{m["min"]:g}-{m["max"]:g}').replace(".", ",")
             data["alerts"].append(f'Nieuwe ijsmeting: {m["place"]} {val} cm ({m["source"]})')
+            data["alert_links"].append("#kaart")
     if prev and prev.get("summary"):
         data["summary"] = prev["summary"]   # wordt door de geplande taak vernieuwd
     json.dump(data, open(outp, "w"), ensure_ascii=False, indent=1)

@@ -98,6 +98,8 @@ button:hover{filter:brightness(.96)}
 .alert{border-radius:8px;padding:10px 14px;background:var(--warn-bg);border-left:4px solid var(--warn)}
 .alert.red,.alert.orange{background:var(--bad-bg);border-left-color:var(--bad)}
 .alert strong{display:block}
+.alert.link{display:block;color:inherit;text-decoration:none;cursor:pointer}
+.alert.link .go{display:block;margin-top:4px;font-size:.85em;font-weight:600;color:var(--warn)}
 .now{display:grid;grid-template-columns:auto 1fr;gap:4px 18px;align-items:center}
 .big{font:600 4rem/1 var(--f-display);font-variant-numeric:tabular-nums}
 .now dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:0;font-size:.95rem}
@@ -691,7 +693,11 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
       A.append(el("div", {cls: "alert " + lvl}, [el("strong", {text: (w.headline || w.event)}),
         el("span", {text: (w.description || "").slice(0, 300)})]));
     }
-    for (const a of d.alerts || []) A.append(el("div", {cls: "alert"}, [el("span", {text: a})]));
+    (d.alerts || []).forEach((a, i) => {
+      const href = (d.alert_links || [])[i];
+      A.append(href ? el("a", {cls: "alert link", href, ...(href[0] === "#" ? {} : {target: "_blank", rel: "noopener"})}, [el("span", {text: a}), el("span", {cls: "go", text: href[0] === "#" ? "Bekijk ›" : "Open bron ›"})])
+                    : el("div", {cls: "alert"}, [el("span", {text: a})]));
+    });
 
     // nu: op de plek van de gebruiker (voorkeuren of GPS), anders De Bilt
     renderHere(d);
