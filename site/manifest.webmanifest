@@ -1,7 +1,7 @@
 {
   "name": "Ligt er al ijs?",
   "short_name": "Ligt er al ijs",
-  "description": "Weer, vorst, natuurijs en de laatste berichten van weermannen en het Noodweer-forum, voor Midden-Nederland.",
+  "description": "Weer, vorst, natuurijs en de laatste berichten van weermannen en het Noodweer-forum, voor heel Nederland.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
