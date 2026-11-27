@@ -36,13 +36,16 @@ HASHTAGS = ("#natuurijs #schaatsen #ligteralijs #ijs #winter #vorst #schaatsweer
 
 SYSTEM = f"""Je schrijft Instagram-bijschriften voor 'Ligt er al ijs?' (@ligteralijs), dé verbinder voor
 al het nieuws en de achtergrond rondom natuurijs in heel Nederland. De gratis app bundelt weermannen,
-ijsmetingen, modelverwachtingen en natuurijsberichten. Schrijf in gewoon, enthousiast maar eerlijk Nederlands.
+ijsmetingen, modelverwachtingen en natuurijsberichten. Schrijf in gewoon, enthousiast en positief Nederlands:
+de toon is "vandaag zou het ergens moeten kunnen!", niet "blijf eraf".
 Regels:
-- Begin met een pakkende eerste regel met 1-2 emoji.
-- 3-6 korte zinnen over het nieuws, met concrete getallen uit de data. Overdrijf niet.
-- Als het ijs nog niet betrouwbaar is: zeg duidelijk dat erop gaan nog gevaarlijk is.
-- Verwijs naar de app met: 👉 link in bio ({APP_LINK}). Noem nooit een ander webadres.
-- Sluit af met een vraag of oproep om een schaatsmaatje te taggen.
+- Begin met een pakkende, vrolijke eerste regel met 1-2 emoji.
+- Zet de echte ijsmetingen centraal: noem 3-5 plaatsen met hun gemeten dikte (en de verwachting voor nu),
+  en waar al geschaatst wordt (wedstrijden, ijsbanen, eerste tochtjes). Gebruik alleen getallen uit de data.
+- Maak het concreet en uitnodigend, met 1 zin over het weer van de komende dagen.
+- Eén korte, nuchtere veiligheidszin (bijv. ijsdikte zelf checken, niet alleen, ondiep water, eigen risico), geen doemdenken.
+- Verwijs naar de app met: 👉 alle metingen op de kaart via link in bio ({APP_LINK}). Noem nooit een ander webadres.
+- Sluit af met een oproep: tag een schaatsmaatje of deel je eigen meting.
 - Zet daarna een witregel en precies deze hashtags: {HASHTAGS}
 Geef alleen het bijschrift terug."""
 
@@ -82,7 +85,35 @@ def nl_date(iso):
     return f"{dag[d.weekday()]} {d.day} {mnd[d.month - 1]}"
 
 
-def template_caption(hits, ice):
+def recent_measurements(data, hours=36, n=6):
+    """Gemeten ijs van de afgelopen uren: per plaats de nieuwste meting plus de prognose voor nu."""
+    k = data.get("ijskaart") or {}
+    since = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=hours)).isoformat()[:19]
+    now_cm = {p.get("place"): p.get("morning_cm") for p in k.get("points") or []}
+    best = {}
+    for m in sorted(k.get("measurements") or [], key=lambda m: m.get("time") or ""):
+        if (m.get("time") or "")[:19] >= since and m.get("cm"):
+            best[m["place"]] = m
+    out = []
+    for m in best.values():
+        out.append({"place": m["place"].split(" (")[0], "cm": m["cm"], "max": m.get("max") or m["cm"], "now": now_cm.get(m["place"]),
+                    "source": m.get("source"), "quote": m.get("quote"), "kind": m.get("kind")})
+    return sorted(out, key=lambda x: -(x["now"] or x["cm"]))[:n]
+
+
+def cm(x):
+    return f"{x:.1f}".replace(".", ",").replace(",0", "")
+
+
+def template_caption(hits, ice, meas=None):
+    if meas:
+        lines = ["⛸️ Vandaag zou het ergens moeten kunnen! ❄️", "", "Gemeten ijs:"]
+        lines += [f"• {m['place']}: {cm(m['max'])} cm" + (f" (nu ~{cm(m['now'])} cm)" if m.get("now") else "") for m in meas[:5]]
+        lines += ["", "Check altijd zelf de ijsdikte, ga niet alleen en blijf op ondiep water.",
+                  "", f"Alle metingen op de kaart 👉 link in bio ({APP_LINK})",
+                  "Tag je schaatsmaatje of deel je eigen meting 👇", "", HASHTAGS]
+        return "\n".join(lines)
+
     lines = ["❄️ Natuurijsnieuws! ⛸️", ""]
     lines += ["• " + a for _, a in hits[:4]]
     if ice:
@@ -106,6 +137,7 @@ def claude_caption(hits, data):
                                "piek": ice.get("peak"), "piek_label": ice["labels"][ice.get("peak_level", 0)] if ice else None},
             "dagen": [{k: r.get(k) for k in ("date", "tmin", "tmax", "cm")} for r in ice.get("rows") or [] if r.get("forecast")][:8],
             "beoordeling_berichten": (data.get("ai") or {}).get("samenvatting"),
+            "gemeten_ijs_laatste_36_uur": recent_measurements(data),
         }
         resp = anthropic.Anthropic().messages.create(
             model=MODEL, max_tokens=1500, system=SYSTEM,
@@ -188,6 +220,48 @@ def image(title, sub, hits, path):
     img.save(path)
 
 
+def measured_image(meas, path):
+    """Plaatje 'Gemeten ijs': per plaats een balk met de gemeten dikte en de verwachting voor nu."""
+    from PIL import Image, ImageDraw
+    import random
+    S = 1080
+    img = Image.new("RGB", (S, S))
+    d = ImageDraw.Draw(img)
+    for y in range(S):
+        t = y / S
+        d.line([(0, y), (S, y)], fill=(int(10 + 35 * t), int(45 + 85 * t), int(95 + 110 * t)))
+    rnd = random.Random(7)
+    for _ in range(10):   # ijsscheurtjes
+        x, y = rnd.randint(0, S), rnd.randint(0, S)
+        for _ in range(4):
+            nx, ny = x + rnd.randint(-90, 90), y + rnd.randint(-90, 90)
+            d.line([(x, y), (nx, ny)], fill=(60, 110, 160), width=2)
+            x, y = nx, ny
+    d.text((70, 60), "LIGT ER AL IJS?", font=font(40), fill=(190, 225, 250))
+    d.text((70, 110), "Gemeten ijs", font=font(92), fill="white")
+    d.text((72, 220), nl_date(dt.date.today().isoformat()) + " · heel Nederland", font=font(38, False), fill=(205, 232, 252))
+    top, row = 320, 100
+    scale = 560 / max(6.0, max((m.get("now") or m["max"]) for m in meas))
+    for i, m in enumerate(meas[:6]):
+        y = top + i * row
+        d.text((70, y), m["place"][:20], font=font(40), fill="white")
+        bx, by = 70, y + 52
+        d.rounded_rectangle([bx, by, bx + 560, by + 24], radius=12, fill=(30, 70, 120))
+        if m.get("now"):
+            d.rounded_rectangle([bx, by, bx + int(m["now"] * scale), by + 24], radius=12, fill=(120, 185, 235))
+        d.rounded_rectangle([bx, by, bx + max(24, int(m["max"] * scale)), by + 24], radius=12, fill=(235, 248, 255))
+        d.text((660, y + 6), f"{cm(m['max'])} cm", font=font(56), fill="white")
+        if m.get("now"):
+            d.text((880, y + 20), f"nu ~{cm(m['now'])}", font=font(32, False), fill=(170, 215, 245))
+    y = top + 6 * row + 4
+    d.rounded_rectangle([70, y, 94, y + 20], radius=8, fill=(235, 248, 255))
+    d.text((104, y - 6), "gemeten", font=font(28, False), fill=(205, 232, 252))
+    d.rounded_rectangle([260, y, 284, y + 20], radius=8, fill=(120, 185, 235))
+    d.text((294, y - 6), "verwachting nu (Ligt er al ijs?-model)", font=font(28, False), fill=(205, 232, 252))
+    d.text((70, S - 110), f"Alle metingen op de kaart → {APP_LINK}", font=font(40), fill="white")
+    img.save(path)
+
+
 def main(path, prev_path):
     data = json.load(open(path))
     try:
@@ -213,9 +287,14 @@ def main(path, prev_path):
             return
     ice = data.get("ice") or {}
     title, sub = headline(hits[0], ice)
-    caption = claude_caption(hits, data) or template_caption(hits, ice)
+    meas = recent_measurements(data)
+    caption = claude_caption(hits, data) or template_caption(hits, ice, meas)
     os.makedirs(OUT, exist_ok=True)
-    image(title, sub, hits, os.path.join(OUT, "voorstel.png"))
+    if len(meas) >= 3:
+        measured_image(meas, os.path.join(OUT, "voorstel.png"))
+        title = "Gemeten ijs"
+    else:
+        image(title, sub, hits, os.path.join(OUT, "voorstel.png"))
     stamp = now.strftime("%Y-%m-%d %H:%M")
     open(os.path.join(OUT, "caption.txt"), "w").write(caption)
     open(os.path.join(OUT, "title.txt"), "w").write(f"Instagram-voorstel {stamp} UTC: {title}")
