@@ -34,18 +34,18 @@ HASHTAGS = ("#natuurijs #schaatsen #ligteralijs #ijs #winter #vorst #schaatsweer
             "#wijdemeren #loosdrecht #elfsteden #elfstedentocht #toertocht #schaatsliefde "
             "#koudeweer #winterweer #weer #ijspret")
 
-SYSTEM = f"""Je schrijft Instagram-bijschriften voor 'Ligt er al ijs?' (@ligteralijs), dé verbinder voor
-al het nieuws en de achtergrond rondom natuurijs in heel Nederland. De gratis app bundelt weermannen,
-ijsmetingen, modelverwachtingen en natuurijsberichten. Schrijf in gewoon, enthousiast en positief Nederlands:
-de toon is "vandaag zou het ergens moeten kunnen!", niet "blijf eraf".
-Regels:
-- Begin met een pakkende, vrolijke eerste regel met 1-2 emoji.
-- Zet de echte ijsmetingen centraal: noem 3-5 plaatsen met hun gemeten dikte (en de verwachting voor nu),
-  en waar al geschaatst wordt (wedstrijden, ijsbanen, eerste tochtjes). Gebruik alleen getallen uit de data.
-- Maak het concreet en uitnodigend, met 1 zin over het weer van de komende dagen.
-- Eén korte, nuchtere veiligheidszin (bijv. ijsdikte zelf checken, niet alleen, ondiep water, eigen risico), geen doemdenken.
-- Verwijs naar de app met: 👉 alle metingen op de kaart via link in bio ({APP_LINK}). Noem nooit een ander webadres.
-- Sluit af met een oproep: tag een schaatsmaatje of deel je eigen meting.
+SYSTEM = f"""Je schrijft Instagram-bijschriften voor 'Ligt er al ijs?' (@ligteralijs), een account over natuurijs
+in heel Nederland, gerund door een schaatsliefhebber. Het moet klinken alsof een gewone schaatser het snel even
+op z'n telefoon tikt, niet als marketing en zeker niet als AI-tekst.
+Stijl:
+- Korte, gewone zinnen in spreektaal. Geen opsommingstekens, geen kopjes, geen dubbele punten-lijstjes.
+- Hooguit 1 of 2 emoji in het hele bericht. Geen gedachtestreepjes, geen woorden als "hét", "ontdek", "mis het niet".
+- Begin met een korte, positieve eerste regel (bijv. "Het kan ergens vandaag").
+- Noem 2 tot 4 plekken met hun gemeten dikte in een lopende zin, en waar al geschaatst wordt. Alleen getallen uit de data.
+- 1 zin over het weer van de komende dagen.
+- 1 korte nuchtere zin over veiligheid (zelf prikken, niet alleen).
+- Eindig met "Alle metingen staan op de kaart, link in bio." en een korte vraag zoals "Wie gaat er mee?".
+- Noem nooit een webadres.
 - Zet daarna een witregel en precies deze hashtags: {HASHTAGS}
 Geef alleen het bijschrift terug."""
 
@@ -107,11 +107,11 @@ def cm(x):
 
 def template_caption(hits, ice, meas=None):
     if meas:
-        lines = ["⛸️ Vandaag zou het ergens moeten kunnen! ❄️", "", "Gemeten ijs:"]
-        lines += [f"• {m['place']}: {cm(m['max'])} cm" + (f" (nu ~{cm(m['now'])} cm)" if m.get("now") else "") for m in meas[:5]]
-        lines += ["", "Check altijd zelf de ijsdikte, ga niet alleen en blijf op ondiep water.",
-                  "", f"Alle metingen op de kaart 👉 link in bio ({APP_LINK})",
-                  "Tag je schaatsmaatje of deel je eigen meting 👇", "", HASHTAGS]
+        plekken = [f"{m['place']} {cm(m['max'])} cm" for m in meas[:4]]
+        lines = ["Het kan ergens vandaag ⛸️", "",
+                 "Gemeten in " + ", ".join(plekken[:-1]) + " en " + plekken[-1] + ".", "",
+                 "Wel even zelf prikken voor je opstapt, en niet in je eentje.", "",
+                 "Alle metingen staan op de kaart, link in bio.", "Wie gaat er mee?", "", HASHTAGS]
         return "\n".join(lines)
 
     lines = ["❄️ Natuurijsnieuws! ⛸️", ""]
