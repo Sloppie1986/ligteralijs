@@ -69,15 +69,16 @@
       me.replaceChildren(); me.classList.toggle("in", !!user);
       if (user) {
         me.append(avatarEl(myAvatar(), myName() || user.email), el("span", {cls: "nm", text: (myName() || "Ingelogd") + (admin ? " ★" : "")}));
-        me.title = `Ingelogd als ${myName() || user.email}${admin ? " (beheerder)" : ""}. Tik voor je voorkeuren.`;
-        me.onclick = openPrefs;
+        me.title = `Ingelogd als ${myName() || user.email}${admin ? " (beheerder)" : ""}`;
       } else {
-        me.textContent = "Inloggen"; me.title = "Inloggen om mee te doen";
-        me.onclick = () => $("logindlg").showModal();
+        me.textContent = "Inloggen"; me.title = "Inloggen of voorkeuren";
       }
+      me.setAttribute("aria-haspopup", "menu");
+      me.onclick = e => { e.stopPropagation(); toggleMenu(); };
     }
     for (const box of document.querySelectorAll(".samen-auth")) {
       box.replaceChildren();
+      if (user) continue;   // ingelogd: status, voorkeuren en uitloggen staan in het menu bovenaan
       if (user) {
         box.append(el("span", {cls: "authpill", text: `✓ Ingelogd als ${myName() || user.email}${admin ? " · beheerder" : ""}`}),
           el("button", {type: "button", cls: "linkbtn", text: "⚙ voorkeuren", onclick: openPrefs}),
@@ -100,6 +101,28 @@
     let {error} = await sb.from(table).insert(row);
     if (error && row.avatar !== undefined && /avatar/.test(error.message || "")) ({error} = await sb.from(table).insert((({avatar, ...r}) => r)(row)));
     return {error};
+  }
+
+  window.savePrefsToAccount = p => { if (user) sb.auth.updateUser({data: {prefs: p}}).catch(() => {}); };
+
+  // ---------------- menu bovenaan
+  function toggleMenu(force) {
+    let m = $("memenu");
+    if (!m) { m = el("div", {id: "memenu", cls: "memenu", role: "menu", hidden: ""}); document.body.append(m);
+      document.addEventListener("click", e => { if (!m.hidden && !m.contains(e.target)) m.hidden = true; });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") m.hidden = true; }); }
+    const open = force ?? m.hidden;
+    if (!open) { m.hidden = true; return; }
+    m.replaceChildren();
+    const item = (text, fn) => el("button", {type: "button", role: "menuitem", text, onclick: () => { m.hidden = true; fn(); }});
+    if (user) m.append(el("div", {cls: "mehead"}, [avatarEl(myAvatar(), myName()), el("div", {}, [el("strong", {text: myName() || "Ingelogd"}),
+      el("small", {text: (admin ? "Beheerder · " : "") + (user.email || "")})])]));
+    else m.append(item("Inloggen", () => $("logindlg").showModal()));
+    m.append(item("⚙ Voorkeuren", openPrefs));
+    if (user) m.append(item("Uitloggen", () => sb.auth.signOut()));
+    const r = $("mebtn").getBoundingClientRect();
+    m.style.top = (r.bottom + 6) + "px"; m.style.right = Math.max(8, innerWidth - r.right) + "px";
+    m.hidden = false;
   }
 
   // ---------------- persoonlijke voorkeuren

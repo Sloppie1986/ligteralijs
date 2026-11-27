@@ -86,6 +86,22 @@ button:hover{filter:brightness(.96)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .icebar{background:linear-gradient(90deg,#16304a 0 13.3%,#1b3d5c 13.3% 33.3%,#20496d 33.3% 53.3%,#265883 53.3% 80%,#2d6a9c 80%)}}
 .icebar .now,.icebar .peak{position:absolute;top:0;bottom:0;width:3px;border-radius:2px;transform:translateX(-1px)}
 .icebar .meas{position:absolute;top:-2px;bottom:-2px;width:5px;border-radius:3px;transform:translateX(-2px);background:var(--ok);box-shadow:0 0 0 2px var(--solid)}
+.verdict{padding:10px 12px;border-radius:10px;border-left:6px solid;font-size:.86rem;margin:4px 0 8px}
+.verdict .vhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:2px}
+.verdict strong{font:600 1.05rem var(--f-display)}
+.verdict.green{border-color:#1f8a4c;background:color-mix(in srgb,#1f8a4c 12%,transparent)}.verdict.green strong{color:#1f8a4c}
+.verdict.orange{border-color:#d07a00;background:color-mix(in srgb,#d07a00 12%,transparent)}.verdict.orange strong{color:#c06f00}
+.verdict.red{border-color:#c4322b;background:color-mix(in srgb,#c4322b 12%,transparent)}.verdict.red strong{color:#c4322b}
+.vstrip{display:flex;gap:3px}.vstrip i{width:12px;height:12px;border-radius:3px;background:#9aa6b0}
+.vstrip i.green{background:#1f8a4c}.vstrip i.orange{background:#d07a00}.vstrip i.red{background:#c4322b}
+.practice{margin-top:10px}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ptile{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:10px;background:var(--sunk);border-top:4px solid var(--line);min-width:0}
+.ptile small{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.ptile b{font:600 1.35rem/1.1 var(--f-display)}
+.ptile span{font-size:.74rem;color:var(--muted);overflow-wrap:anywhere}
+.ptile.th{border-top-color:var(--muted)}.ptile.me{border-top-color:var(--ok)}.ptile.pr{border-top-color:var(--frost)}
+.pdiff{margin:6px 0 0;font-size:.84rem}
 .measured{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);border-left:4px solid var(--ok);background:var(--solid);font-size:.88rem}
 .measured .mv{font:600 1.4rem/1 var(--f-display);color:var(--ok)}
 .measured q{display:block;margin:4px 0;color:var(--muted);font-style:italic}
@@ -234,6 +250,12 @@ footer ul{padding-left:1.1em}
 .mebtn{display:inline-flex;align-items:center;gap:6px;max-width:150px}
 .mebtn.in{background:#1f7a4d;color:#fff}.mebtn .avatar{width:20px;height:20px;font-size:11px;background:#fff;color:#1f7a4d}
 .mebtn span.nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.memenu{position:fixed;z-index:60;min-width:200px;max-width:min(90vw,300px);background:var(--solid,#fff);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column}
+.memenu[hidden]{display:none}
+.memenu button{background:none;color:inherit;text-align:left;padding:10px 12px;border-radius:8px;font:500 .92rem var(--f-body)}
+.memenu button:hover{background:var(--sunk)}
+.mehead{display:flex;gap:10px;align-items:center;padding:8px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.mehead .avatar{width:36px;height:36px;font-size:16px}.mehead div{display:flex;flex-direction:column;min-width:0}.mehead small{color:var(--muted);font-size:.75rem;overflow:hidden;text-overflow:ellipsis}
 .authpill{background:#1f7a4d;color:#fff;border-radius:999px;padding:4px 10px;font-weight:700;font-size:.8rem}
 .linkbtn{background:none;padding:0;border-radius:0;text-decoration:underline;color:var(--accent);font-weight:600}
 .pickhint{background:var(--accent-soft);border-radius:10px;padding:8px 12px;margin:0 0 10px;font-weight:600}
@@ -329,7 +351,7 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     </div>
     <div class="col active" data-tab="overzicht">
       <section class="panel" aria-labelledby="h-now">
-        <header><h2 id="h-now">Nu in De Bilt</h2><span class="muted" id="provider"></span></header>
+        <header><h2 id="h-now">Nu in De Bilt</h2><button type="button" id="locbtn" class="linkbtn">📍 Mijn plek</button></header>
         <div class="now">
           <div class="big" id="temp">–</div>
           <dl id="nowdl"></dl>
@@ -348,13 +370,17 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
         </div>
         <div class="icebar" id="icebar" role="img"><span class="now" id="ib-now"></span><span class="peak" id="ib-peak"></span><span class="meas" id="ib-meas" hidden></span></div>
         <div class="icebar-scale"><span style="left:0">0</span><span style="left:13.33%">2</span><span style="left:33.33%">5</span><span style="left:53.33%">8</span><span style="left:80%">12</span><span style="right:0">15 cm</span></div>
-        <div class="icebar-legend"><span><i style="background:var(--fg)"></i>nu</span><span><i style="background:var(--frost)"></i>verwachte piek</span><span id="lg-meas" hidden><i style="background:var(--ok)"></i>gemeten</span><span>8 cm = vuistregel om op te staan, alleen met akkoord ijsmeester</span></div>
-        <div class="measured" id="measured" hidden></div>
+        <div class="icebar-legend"><span><i style="background:var(--fg)"></i>nu</span><span><i style="background:var(--frost)"></i>verwachte piek</span><span id="lg-meas" hidden><i style="background:var(--ok)"></i>praktijk (gemeten + bijgegroeid)</span><span>8 cm = vuistregel om op te staan, alleen met akkoord ijsmeester</span></div>
+        <div class="practice" id="practice" hidden></div>
+        <details class="more" id="measwrap" hidden><summary>KNMI-ijspluim en De Arend</summary><div class="measured" id="measured" hidden></div></details>
         <div class="days" style="margin-top:12px"><table id="days"></table></div>
         <h3 class="trend-h">Gaat het de goede kant op?</h3>
-        <div class="muted" style="font-size:.8rem;margin-bottom:4px">Per dagdeel: bovenste regel = weermodellen, onderste = stemming in X, forum en nieuws</div>
+        <div class="verdict" id="verdict"></div>
         <div class="ai" id="ai" hidden></div>
-        <div class="trend" id="trend"></div>
+        <details class="more"><summary>Per dagdeel bekijken</summary>
+          <div class="muted" style="font-size:.8rem;margin:4px 0">Bovenste regel = weermodellen, onderste = stemming in X, forum en nieuws</div>
+          <div class="trend" id="trend"></div>
+        </details>
         <details class="more"><summary>Uitleg</summary>
         <p class="note">Trend: per dagdeel de verwachting van dat moment, vergeleken met het dagdeel ervoor. Blauw ▲ = kouder/meer ijs verwacht, rood ▼ = zachter. De stemming telt woorden als vorst, ijs, oostenwind tegenover dooi, zacht, zuidwest; dat is een grove graadmeter, geen echte taalanalyse. Vorstsom = opgetelde graden onder nul (daggemiddelde) over de komende dagen.</p>
         <p class="note">Temperaturen per dag = gemiddelde van de 3 beste modellen die die dag dekken. De eerste 2 dagen zijn dat de fijnmazige modellen HARMONIE (KNMI), ICON-D2 (Duitsland) en AROME (Frankrijk); die rekenen niet verder vooruit. Daarna ECMWF, ICON-EU en UKMO, en na een week ECMWF en GFS. Spreiding = hoeveel de modellen het oneens zijn over de daggemiddelde temperatuur (groen = eens, rood = onzeker). Houd je vinger op een cijfer voor de waarde per model.</p>
@@ -629,12 +655,15 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     }
     for (const a of d.alerts || []) A.append(el("div", {cls: "alert"}, [el("span", {text: a})]));
 
-    // nu
+    // nu: op de plek van de gebruiker (voorkeuren of GPS), anders De Bilt
+    renderHere(d);
     const f = d.forecast || {}, c = f.current || {};
     const bs = (d.buienradar && d.buienradar.stations) || [];
     const bilt = bs.find(s => s.name === "De Bilt");
+    const st = $("stations"); st.replaceChildren();
+    if (!window._here) {
+    $("h-now").textContent = "Nu in De Bilt";
     $("temp").textContent = fmtT(bilt ? bilt.temp : c.temperature_2m);
-    $("provider").textContent = "";
     const dl = $("nowdl"); dl.replaceChildren();
     const row = (k, v) => { if (v != null && v !== "") dl.append(el("dt", {text: k}), el("dd", {text: v})); };
     row("Weer", bilt ? bilt.desc : WX[c.weather_code]);
@@ -644,8 +673,8 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     const daily = f.daily || {};
     const ti = (daily.time || []).indexOf(new Date().toLocaleDateString("sv-SE", tz));
     if (ti >= 0) row("Vandaag", `${fmtT(daily.temperature_2m_min[ti])} / ${fmtT(daily.temperature_2m_max[ti])}`);
-    const st = $("stations"); st.replaceChildren();
     for (const s of bs) if (s.name !== "De Bilt") st.append(el("span", {cls: "chip mono", text: `${s.name} ${fmtT(s.temp)}`}));
+    }
 
     // ijs
     const ice = d.ice;
@@ -660,9 +689,11 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
       const nowCm = ice.today ? ice.today.cm : 0, peakCm = ice.peak ? ice.peak.cm : nowCm;
       $("ib-now").style.left = pos(nowCm); $("ib-peak").style.left = pos(peakCm); $("ib-peak").hidden = !(peakCm > nowCm);
       const sn = d.schaatsnieuws || {}, ms = sn.latest;
-      $("ib-meas").hidden = !ms; $("lg-meas").hidden = !ms;
-      if (ms) $("ib-meas").style.left = pos(ms.cm);
+      const pr = practice(d, nowCm);
+      $("ib-meas").hidden = !pr; $("lg-meas").hidden = !pr;
+      if (pr) $("ib-meas").style.left = pos(pr.p.now_cm ?? pr.p.min);
       const MS = $("measured"); MS.hidden = !(ms || img(sn.knmi_pluim)); MS.replaceChildren();
+      $("measwrap").hidden = MS.hidden;
       if (ms) {
         const when = new Date(ms.time).toLocaleString("nl-NL", {weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
         const su = safeUrl(sn.url);
@@ -734,7 +765,25 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
       for (const k of ai.kaarten || []) det.append(el("div", {cls: "ai-item " + k.effect, text: `${{positief: "▲", negatief: "▼"}[k.effect] || "▬"} Kaart ${k.nr}: ${k.wat}`}));
       AI.append(det, el("div", {cls: "muted", style: "font-size:.75rem", text: "Beoordeeld door Claude (AI), één keer per dagdeel. Kan zich vergissen; kijk zelf naar de berichten."}));
     }
-    // trend per dagdeel
+    // trend: één oordeel in kleur, met een strook van de laatste dagdelen
+    {
+      const V = $("verdict"); V.replaceChildren();
+      const H = d.ice_trend || [], last = H[H.length - 1];
+      const fc = ((d.ice || {}).rows || []).filter(r => r.forecast).slice(0, 3);
+      const thaw = fc.length && fc.every(r => r.tmean > 0);
+      const col = h => !h ? "grey" : (h.frost === 0 && h.peak_cm < 0.5) ? "red" : h.dir === "beter" ? "green" : h.dir === "slechter" ? "orange" : "grey";
+      let c = thaw ? "red" : col(last);
+      if (c === "grey") { const prevC = H.slice(0, -1).reverse().map(col).find(x => x !== "grey"); c = prevC || "green"; }
+      const txt = {green: ["De goede kant op", "De verwachting wordt kouder of het ijs dikker dan bij de vorige run."],
+                   orange: ["Minder goed", "De verwachting is zachter of het ijs dunner dan bij de vorige run."],
+                   red: ["Dooi: het is voorbij", "De komende dagen dooit het. IJs wordt zwakker; banen gaan dicht."]}[c];
+      const pk = last && last.peak_cm ? `Piek ~${last.peak_cm.toLocaleString("nl-NL")} cm` : "Geen ijsgroei verwacht";
+      const prev = H[H.length - 2];
+      const cmp = prev && last ? ` (was ${prev.peak_cm.toLocaleString("nl-NL")} cm ${new Date(prev.date).toLocaleDateString("nl-NL", {weekday: "short"})} ${prev.part})` : "";
+      const strip = el("div", {cls: "vstrip", "aria-hidden": "true"}, H.slice(-8).map(h => el("i", {cls: col(h), title: `${new Date(h.date).toLocaleDateString("nl-NL", {weekday: "short"})} ${h.part}: ${h.dir || "start"}`})));
+      V.className = "verdict " + c;
+      V.append(el("div", {cls: "vhead"}, [el("strong", {text: txt[0]}), strip]), el("div", {text: `${txt[1]} ${pk}${cmp}.`}));
+    }
     const TR = $("trend"); TR.replaceChildren();
     const hist = (d.ice_trend || []).slice().reverse();
     if (!hist.length) TR.append(el("div", {cls: "muted", text: "Nog geen geschiedenis; vanaf nu wordt elk dagdeel bewaard."}));
@@ -782,6 +831,89 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     }
   }
 ;
+  // ---------------- theorie tegenover praktijk
+  function practice(d, theory) {
+    const box = $("practice"); box.replaceChildren();
+    const pts = ((d.ijskaart || {}).points || []).filter(p => p.lat != null);
+    const h = prefs().home, ref = h && h.lat ? h : {lat: 52.1, lon: 5.18, name: "De Bilt"};
+    const R = +prefs().radius || 30;
+    const near = pts.map(p => ({p, km: kmTo2(ref.lat, ref.lon, p.lat, p.lon)})).filter(x => x.km <= Math.max(R, 30))
+      .sort((a, b) => b.p.time.localeCompare(a.p.time) || a.km - b.km)[0];
+    if (!near) { box.hidden = true; return null; }
+    const p = near.p, nowP = p.now_cm ?? p.min, since = nowP - p.min, night = p.night_gain;
+    const when = new Date(p.time).toLocaleString("nl-NL", {...tz, weekday: "short", hour: "2-digit", minute: "2-digit"});
+    const tile = (cls, lbl, val, sub) => el("div", {cls: "ptile " + cls}, [el("small", {text: lbl}), el("b", {text: val}), el("span", {text: sub})]);
+    const n1 = v => (+v).toLocaleString("nl-NL", {maximumFractionDigits: 1});
+    box.append(el("div", {cls: "pgrid"}, [
+      tile("th", "Theorie", `${n1(theory)} cm`, "rekenmodel De Bilt"),
+      tile("me", "Gemeten", `${n1(p.min)} cm`, `${p.place}, ${when}${near.km >= 1 ? ` · ${Math.round(near.km)} km` : ""}`),
+      tile("pr", "Praktijk nu", `±${n1(nowP)} cm`, `${since >= 0.1 ? "+" + n1(since) + " sinds meting" : "nog niets bijgekomen"}${p.morning_cm != null ? ` · morgen 9:00 ±${n1(p.morning_cm)}` : ""}`)]));
+    const diff = nowP - theory;
+    box.append(el("p", {cls: "pdiff", text: Math.abs(diff) < 0.3 ? "De praktijk klopt ongeveer met de theorie."
+      : `De praktijk ligt ${n1(Math.abs(diff))} cm ${diff < 0 ? "onder" : "boven"} de theorie${diff < 0 ? " (wind, sneeuw, stroming of later dichtgevroren)" : ""}.`}));
+    box.hidden = false;
+    return near;
+  }
+
+  // ---------------- nu bij jou
+  const kmTo2 = (a, b, c, e) => { const r = Math.PI / 180, x = (e - b) * r * Math.cos((a + c) / 2 * r); return 6371 * Math.hypot(x, (c - a) * r); };
+  window._here = null;
+  async function renderHere(d) {
+    const h = prefs().home;
+    $("locbtn").textContent = h ? "📍 " + h.name : "📍 Mijn plek";
+    if (!h || !h.lat) { window._here = null; window._hereT = null; return; }
+    const k = d.ijskaart || {}, list = k.nearby || [];
+    // dichtstbijzijnde station: amateur alleen binnen 10 km, KNMI binnen 40 km
+    let best = null;
+    for (const [la, lo, t, name, am] of list) {
+      const km = kmTo2(h.lat, h.lon, la, lo);
+      if (km > (am ? 10 : 40)) continue;
+      if (!best || km < best.km) best = {km, t, name, am};
+    }
+    const g = (k.ground || []).map(x => ({...x, km: kmTo2(h.lat, h.lon, x.lat, x.lon)})).sort((a, b) => a.km - b.km)[0];
+    window._here = true; window._hereT = best ? best.t : null;
+    $("h-now").textContent = "Nu in " + h.name;
+    const dl = $("nowdl"); dl.replaceChildren();
+    const row = (a, b) => { if (b != null && b !== "") dl.append(el("dt", {text: a}), el("dd", {text: b})); };
+    $("temp").textContent = best ? fmtT(best.t) : "–";
+    row("Gemeten", best ? `${best.am ? "amateurstation " : "KNMI "}${best.name}, ${Math.round(best.km)} km` : "geen station dichtbij");
+    if (g && g.km <= 40) row("Grond 10 cm", `${fmtT(g.ground)} (KNMI ${g.name}, ${Math.round(g.km)} km)`);
+    // verwachting voor precies deze plek (Open-Meteo, in de browser opgehaald en 30 min bewaard)
+    const ck = `om-${h.lat.toFixed(2)},${h.lon.toFixed(2)}`;
+    let om = null;
+    try { const c = JSON.parse(sessionStorage.getItem(ck) || "null"); if (c && Date.now() - c.at < 30 * 60e3) om = c.d; } catch (e) {}
+    if (!om) {
+      try {
+        om = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${h.lat}&longitude=${h.lon}&current=apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m&daily=temperature_2m_min,temperature_2m_max&timezone=Europe%2FAmsterdam&forecast_days=2`)).json();
+        try { sessionStorage.setItem(ck, JSON.stringify({at: Date.now(), d: om})); } catch (e) {}
+      } catch (e) { om = null; }
+    }
+    if (om && om.current) {
+      const c = om.current, dd = om.daily || {};
+      row("Weer", WX[c.weather_code]);
+      row("Gevoel", c.apparent_temperature != null ? fmtT(c.apparent_temperature) : null);
+      row("Wind", c.wind_speed_10m != null ? `${Math.round(c.wind_speed_10m)} km/u` : null);
+      if (dd.temperature_2m_min) row("Vandaag", `${fmtT(dd.temperature_2m_min[0])} / ${fmtT(dd.temperature_2m_max[0])}`);
+      if (dd.temperature_2m_min && dd.temperature_2m_min[1] != null) row("Komende nacht", fmtT(dd.temperature_2m_min[1]));
+    }
+  }
+  async function useMyLocation() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const lat = +pos.coords.latitude.toFixed(4), lon = +pos.coords.longitude.toFixed(4);
+      let name = "mijn plek";
+      try {
+        const r = await (await fetch(`https://api.pdok.nl/bzk/locatieserver/search/v3_1/reverse?lat=${lat}&lon=${lon}&type=woonplaats&rows=1`)).json();
+        name = (r.response.docs[0] || {}).woonplaatsnaam || name;
+      } catch (e) {}
+      const P = prefs(); P.home = {name, lat, lon, zoom: (P.home && P.home.zoom) || 10};
+      try { localStorage.setItem("prefs", JSON.stringify(P)); } catch (e) {}
+      if (window.savePrefsToAccount) window.savePrefsToAccount(P);
+      if (data) render();
+    }, () => alert("Je locatie kon niet worden bepaald. Je kunt je plek ook invullen bij ⚙ voorkeuren."), {timeout: 10000, maximumAge: 600000});
+  }
+  $("locbtn").onclick = () => prefs().home && !confirm(`Je plek staat op ${prefs().home.name}. Opnieuw bepalen met GPS?`) ? null : useMyLocation();
+
   function allPosts() {
     const d = data, out = [...(d.posts || [])];
     for (const c of d.comments || []) out.push({...c, title: c.summary ? c.summary.slice(0, 140) : c.title, summary: "Reactie bij: " + (c.article || ""), source: "Noodweer reacties"});
@@ -879,7 +1011,7 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     for (const [id, n] of [["b-berichten", n1], ["b-forum", n2]]) { const b = $(id); b.hidden = !n; b.textContent = n > 99 ? "99+" : String(n); }
     const M = $("mini"); M.replaceChildren();
     const bs = ((data.buienradar || {}).stations || []).find(s => s.name === "De Bilt");
-    const t = bs ? bs.temp : ((data.forecast || {}).current || {}).temperature_2m;
+    const t = window._hereT != null ? window._hereT : bs ? bs.temp : ((data.forecast || {}).current || {}).temperature_2m;
     if (t != null) M.append(document.createTextNode(fmtT(t)), el("span", {text: data.ice ? data.ice.labels[data.ice.level] : ""}));
   }
 
