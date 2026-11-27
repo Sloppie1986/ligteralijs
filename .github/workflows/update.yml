@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write   # nodig om de site naar de gh-pages branch te pushen
+  issues: write     # Instagram-voorstellen als issue
 
 concurrency:
   group: site
@@ -51,6 +52,27 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python3 assess.py site/data.json || echo "beoordeling mislukt, site gaat gewoon door"
+
+      - name: Instagram-voorstel bij belangrijk ijsnieuws (wordt nooit automatisch gepost)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NTFY_INSTA_TOPIC: ${{ secrets.NTFY_INSTA_TOPIC }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          python3 insta.py site/data.json prev.json || { echo "voorstel maken mislukt, site gaat gewoon door"; exit 0; }
+          [ -f insta_out/caption.txt ] || exit 0
+          name="$(date -u +%Y%m%d-%H%M).png"
+          # plaatje bewaren op de branch 'instagram', zodat het issue het kan tonen
+          ( mkdir ib && cd ib && git init -q && git checkout -q -b instagram
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git"
+            git fetch -q --depth 1 origin instagram && git checkout -q -B instagram FETCH_HEAD || true
+            mkdir -p voorstellen && cp ../insta_out/voorstel.png "voorstellen/$name"
+            git add -A && git commit -qm "Instagram-voorstel $name" && git push -q origin instagram ) || echo "plaatje opslaan mislukt"
+          { cat insta_out/issue.md; echo; echo "![voorstel](https://raw.githubusercontent.com/${GH_REPO}/instagram/voorstellen/${name})"; } > insta_out/body.md
+          gh issue create --title "$(cat insta_out/title.txt)" --body-file insta_out/body.md || echo "issue maken mislukt"
 
       - name: Pushmelding naar alle abonnees (OneSignal)
         if: ${{ env.ONESIGNAL_KEY != '' }}
