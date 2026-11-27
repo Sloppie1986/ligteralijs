@@ -228,8 +228,7 @@ footer ul{padding-left:1.1em}
 .prefphoto{display:flex;align-items:center;gap:12px}.prefphoto .avatar{width:48px;height:48px;font-size:20px}
 .prefset{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:0}.prefset legend{font-size:.8rem;color:var(--muted);padding:0 4px}
 .dform label.chk{flex-direction:row;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0;font-weight:500}.chk input[type=checkbox]{width:18px;height:18px;flex:none}
-.prefphoto[hidden],#prefpw[hidden]{display:none}
-button.ghost{background:none;border:1px solid var(--accent);color:var(--accent)}
+.prefphoto[hidden]{display:none}
 .numin{width:4.5em!important;display:inline-block}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:50;max-width:min(92vw,520px);background:#0f2233;color:#fff;padding:10px 14px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.35);font-size:.9rem}
 .authpill{background:#1f7a4d;color:#fff;border-radius:999px;padding:4px 10px;font-weight:700;font-size:.8rem}
@@ -424,13 +423,11 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
 <dialog id="logindlg" aria-labelledby="h-login">
   <form id="loginform" class="dform">
     <h2 id="h-login">Inloggen</h2>
-    <p class="muted">Je bijnaam staat bij je berichten en metingen; je e-mailadres is niet zichtbaar voor anderen.</p>
-    <label>Bijnaam<input name="name" maxlength="40" autocomplete="nickname"></label>
+    <p class="muted">Je krijgt een link per mail, zonder wachtwoord. Je naam staat bij je berichten en metingen; je e-mailadres is niet zichtbaar voor anderen.</p>
+    <label>Bijnaam<input name="name" required maxlength="40" autocomplete="nickname"></label>
     <label>E-mail<input name="email" type="email" required autocomplete="email"></label>
-    <label>Wachtwoord<input name="password" type="password" minlength="8" autocomplete="current-password" placeholder="minstens 8 tekens"></label>
     <p id="loginmsg" class="muted" role="status"></p>
-    <div class="srow"><button type="submit" value="in">Inloggen</button><button type="submit" value="new" class="ghost">Account maken</button></div>
-    <div class="srow"><button type="button" id="logincancel" class="linkbtn">Annuleren</button><button type="submit" value="link" class="linkbtn">Wachtwoord vergeten? Stuur een inloglink</button></div>
+    <div class="srow"><button type="button" id="logincancel" class="linkbtn">Annuleren</button><button type="submit">Stuur inloglink</button></div>
   </form>
 </dialog>
 <div id="toast" class="toast" role="status" hidden></div>
@@ -439,7 +436,6 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
     <h2 id="h-pref">Mijn voorkeuren</h2>
     <p class="muted">Wordt op dit toestel bewaard, en bij je account als je bent ingelogd.</p>
     <label>Bijnaam (bij je berichten en metingen)<input name="name" maxlength="40" autocomplete="nickname"></label>
-    <label id="prefpw">Nieuw wachtwoord (leeg laten = niet wijzigen)<input name="password" type="password" minlength="8" autocomplete="new-password" placeholder="minstens 8 tekens"></label>
     <div id="prefphoto" class="prefphoto"><span id="prefavatar"></span><label class="fileb">📷 Profielfoto kiezen<input type="file" name="avatar" accept="image/*"></label></div>
     <label>Mijn plek (de ijskaart opent hier)<input name="home" maxlength="60" placeholder="bijv. Loosdrecht" autocomplete="address-level2"></label>
     <label>Hoe ver ingezoomd<select name="zoom"><option value="12">Mijn dorp of stad</option><option value="10" selected>Omgeving (± 20 km)</option><option value="9">Regio (± 50 km)</option></select></label>

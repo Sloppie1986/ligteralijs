@@ -104,7 +104,7 @@
     f.notifyNear.checked = !!p.notifyNear; f.radius.value = p.radius || 30; f.notifyReplies.checked = !!p.notifyReplies;
     f.hi.value = String(p.hi || 8); f.theme.value = p.theme || "";
     $("prefavatar").replaceChildren(avatarEl(myAvatar(), myName()));
-    $("prefphoto").hidden = !user; $("prefpw").hidden = !user; f.password.value = "";
+    $("prefphoto").hidden = !user;
     $("prefdlg").showModal();
   }
   async function geocodeHome(q) {
@@ -144,13 +144,6 @@
       if (user && f.avatar.files[0]) {
         msg.textContent = "Foto uploaden…";
         try { avatar = await upload(f.avatar.files[0], 256); } catch (err) { msg.textContent = "Foto uploaden lukte niet: " + (err.message || err); return; }
-      }
-      const pw = f.password.value;
-      if (user && pw) {
-        if (pw.length < 8) { msg.textContent = "Kies een wachtwoord van minstens 8 tekens."; return; }
-        const {error} = await sb.auth.updateUser({password: pw});
-        if (error) { msg.textContent = "Wachtwoord opslaan lukte niet: " + error.message; return; }
-        f.password.value = "";
       }
       if (user) {
         const {data} = await sb.auth.updateUser({data: {prefs: p, ...(name ? {name} : {}), ...(avatar ? {avatar} : {})}}).catch(() => ({}));
@@ -331,36 +324,13 @@
     // inloggen met e-mail (link per mail, geen wachtwoord)
     const lf = $("loginform");
     lf.name.value = myName();
-    const NL_ERR = m => /rate limit/i.test(m) ? "Er zijn net te veel inlogmails verstuurd. Probeer het over een uur opnieuw, of log in met je wachtwoord."
-      : /Invalid login/i.test(m) ? "E-mail of wachtwoord klopt niet. Nog geen wachtwoord? Kies 'Wachtwoord vergeten'."
-      : /already registered/i.test(m) ? "Dit e-mailadres heeft al een account. Kies 'Inloggen' of 'Wachtwoord vergeten'."
-      : /Email not confirmed/i.test(m) ? "Bevestig eerst je e-mailadres via de mail die je kreeg."
-      : "Dat lukte niet: " + m;
     lf.onsubmit = async e => {
       e.preventDefault();
-      const mode = (e.submitter && e.submitter.value) || "in", msg = $("loginmsg");
-      const name = lf.name.value.trim(), email = lf.email.value.trim(), password = lf.password.value;
-      if (name) store.set("samen-name", name);
-      if (user) { if (name) await saveName(name); $("logindlg").close(); renderAuth(); return; }
-      if (!email) { msg.textContent = "Vul je e-mailadres in."; return; }
-      msg.textContent = "Even geduld…";
-      let res;
-      if (mode === "link") {
-        res = await sb.auth.signInWithOtp({email, options: {emailRedirectTo: location.href.split("#")[0], data: name ? {name} : {}}});
-        msg.textContent = res.error ? NL_ERR(res.error.message) : "Check je mail en tik op de link. Stel daarna in ⚙ voorkeuren een wachtwoord in.";
-        return;
-      }
-      if (password.length < 8) { msg.textContent = "Kies een wachtwoord van minstens 8 tekens."; return; }
-      if (mode === "new") {
-        if (!name) { msg.textContent = "Vul ook een bijnaam in."; return; }
-        res = await sb.auth.signUp({email, password, options: {emailRedirectTo: location.href.split("#")[0], data: {name}}});
-        if (!res.error && !res.data.session) { msg.textContent = "Account gemaakt. Bevestig je e-mailadres via de mail en log daarna in."; return; }
-      } else {
-        res = await sb.auth.signInWithPassword({email, password});
-      }
-      if (res.error) { msg.textContent = NL_ERR(res.error.message); return; }
-      msg.textContent = ""; lf.password.value = "";
-      $("logindlg").close();
+      const name = lf.name.value.trim();
+      store.set("samen-name", name);
+      if (user) { await saveName(name); $("logindlg").close(); renderAuth(); return; }
+      const {error} = await sb.auth.signInWithOtp({email: lf.email.value.trim(), options: {emailRedirectTo: location.href.split("#")[0], data: {name}}});
+      $("loginmsg").textContent = error ? "Dat lukte niet: " + error.message : "Check je mail en tik op de link om in te loggen.";
     };
     $("logincancel").onclick = () => $("logindlg").close();
 
