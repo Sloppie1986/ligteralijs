@@ -64,6 +64,18 @@
 
   // ---------------- inloggen
   function renderAuth() {
+    const me = $("mebtn");
+    if (me) {
+      me.replaceChildren(); me.classList.toggle("in", !!user);
+      if (user) {
+        me.append(avatarEl(myAvatar(), myName() || user.email), el("span", {cls: "nm", text: (myName() || "Ingelogd") + (admin ? " ★" : "")}));
+        me.title = `Ingelogd als ${myName() || user.email}${admin ? " (beheerder)" : ""}. Tik voor je voorkeuren.`;
+        me.onclick = openPrefs;
+      } else {
+        me.textContent = "Inloggen"; me.title = "Inloggen om mee te doen";
+        me.onclick = () => $("logindlg").showModal();
+      }
+    }
     for (const box of document.querySelectorAll(".samen-auth")) {
       box.replaceChildren();
       if (user) {
