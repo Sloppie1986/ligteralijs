@@ -51,6 +51,62 @@
     setInterval(loadReports, 5 * 60e3); setInterval(loadForum, 2 * 60e3);
     window.addEventListener("icemap-rendered", drawReports);
     wireForms();
+    logVisit();
+  }
+
+  // ---------------- bezoekersmonitor (anoniem: dagelijks wisselende code, geen naam/e-mail/IP)
+  function logVisit() {
+    try { if (sessionStorage.getItem("visited")) return; sessionStorage.setItem("visited", "1"); } catch (e) {}
+    const today = new Date().toLocaleDateString("sv-SE", tz);
+    let v = {}; try { v = JSON.parse(store.get("vday") || "{}"); } catch (e) {}
+    const again = !!v.d;
+    if (v.d !== today) { v = {d: today, id: (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, "").slice(0, 24)}; store.set("vday", JSON.stringify(v)); }
+    let ref = ""; try { const r = document.referrer && new URL(document.referrer); if (r && r.host !== location.host) ref = r.host.slice(0, 80); } catch (e) {}
+    sb.from("visits").insert({vid: v.id, again, mobile: matchMedia("(max-width:900px)").matches, member: !!user, ref,
+      app: matchMedia("(display-mode: standalone)").matches || navigator.standalone === true,
+      tab: (location.hash.slice(1) || getPrefs().tab || "weer").slice(0, 20)}).then(() => {}, () => {});
+  }
+
+  async function openStats() {
+    let dlg = $("statsdlg");
+    if (!dlg) {
+      dlg = el("dialog", {id: "statsdlg", cls: "statsdlg", "aria-label": "Bezoekers"});
+      document.body.append(dlg);
+      dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+    }
+    dlg.replaceChildren(el("p", {cls: "muted", text: "Laden…"})); dlg.showModal();
+    const {data, error} = await sb.rpc("visit_stats", {days: 30});
+    const close = el("button", {type: "button", text: "Sluiten", onclick: () => dlg.close()});
+    if (error || !data) { dlg.replaceChildren(el("h2", {text: "Bezoekers"}), el("p", {text: "Nog geen cijfers: " + ((error && error.message) || "geen data")}), close); return; }
+    const days = data.days || [], byDay = Object.fromEntries(days.map(d => [d.day, d]));
+    const iso = n => new Date(Date.now() - n * 864e5).toLocaleDateString("sv-SE", tz);
+    const T = byDay[iso(0)] || {}, Y = byDay[iso(1)] || {};
+    const sum = (n, k) => { let t = 0; for (let i = 0; i < n; i++) t += (byDay[iso(i)] || {})[k] || 0; return t; };
+    const tile = (big, label, sub) => el("div", {cls: "stile"}, [el("b", {text: String(big)}), el("span", {text: label}), sub ? el("small", {text: sub}) : null]);
+    const max = Math.max(1, ...days.map(d => d.visitors));
+    const bars = el("div", {cls: "sbars"});
+    for (let i = 29; i >= 0; i--) {
+      const d = byDay[iso(i)] || {visitors: 0, opens: 0}, h = Math.round(100 * d.visitors / max);
+      const lbl = new Date(iso(i) + "T12:00").toLocaleDateString("nl-NL", {weekday: "short", day: "numeric", month: "short"});
+      bars.append(el("div", {cls: "sbar" + (i === 0 ? " now" : ""), title: `${lbl}: ${d.visitors} bezoekers, ${d.opens} keer geopend`, style: `height:${Math.max(h, d.visitors ? 4 : 1)}%`}));
+    }
+    const hours = Array(24).fill(0); for (const h of data.hours || []) hours[h.hour] = h.opens;
+    const hmax = Math.max(1, ...hours), hb = el("div", {cls: "sbars hrs"});
+    hours.forEach((n, i) => hb.append(el("div", {cls: "sbar", title: `${i}:00 ${n}×`, style: `height:${Math.max(Math.round(100 * n / hmax), n ? 4 : 1)}%`})));
+    const tabs = Object.entries(data.tabs || {}).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(" · ");
+    const refs = (data.refs || []).map(r => `${r.ref} ${r.n}`).join(" · ");
+    const pct = data.total ? Math.round(100 * data.mobile / data.total) : 0;
+    dlg.replaceChildren(
+      el("h2", {text: "Bezoekers"}),
+      el("div", {cls: "stiles"}, [tile(T.visitors || 0, "vandaag", `${T.opens || 0}× geopend · ${T.new || 0} nieuw`), tile(Y.visitors || 0, "gisteren", `${Y.opens || 0}× geopend`),
+        tile(sum(7, "visitors"), "7 dagen", "bezoekers per dag opgeteld"), tile(sum(30, "opens"), "30 dagen", "keer geopend")]),
+      el("h3", {text: "Bezoekers per dag (30 dagen)"}), bars,
+      el("h3", {text: "Vandaag per uur"}), hb, el("div", {cls: "saxis"}, [el("span", {text: "0"}), el("span", {text: "6"}), el("span", {text: "12"}), el("span", {text: "18"}), el("span", {text: "23"})]),
+      el("p", {cls: "sinfo", text: `Ingelogd vandaag: ${T.members || 0} · als app geïnstalleerd: ${T.app || 0} · telefoon ${pct}%`}),
+      tabs ? el("p", {cls: "sinfo", text: "Starttab: " + tabs}) : null,
+      refs ? el("p", {cls: "sinfo", text: "Via: " + refs}) : null,
+      el("p", {cls: "muted", style: "font-size:.75rem", text: "Anoniem geteld: één keer per bezoek, met een code die elke dag wisselt. Geen namen, e-mail of IP-adressen. Iemand die op twee dagen komt, telt in '7 dagen' twee keer."}),
+      close);
   }
 
   async function checkAdmin() {
@@ -119,6 +175,8 @@
       el("small", {text: (admin ? "Beheerder · " : "") + (user.email || "")})])]));
     else m.append(item("Inloggen", () => $("logindlg").showModal()));
     m.append(item("⚙ Voorkeuren", openPrefs));
+    if (innerWidth <= 900) for (const id of ["bell", "install"]) { const b = $(id); if (b && !b.hidden) m.append(item(b.textContent, () => b.click())); }
+    if (admin) m.append(item("📊 Bezoekers", openStats));
     if (user) m.append(item("Uitloggen", () => sb.auth.signOut()));
     const r = $("mebtn").getBoundingClientRect();
     m.style.top = (r.bottom + 6) + "px"; m.style.right = Math.max(8, innerWidth - r.right) + "px";

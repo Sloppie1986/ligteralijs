@@ -247,6 +247,12 @@ footer ul{padding-left:1.1em}
 .mebtn span.nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .memenu{position:fixed;z-index:60;min-width:200px;max-width:min(90vw,300px);background:var(--solid,#fff);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column}
 .memenu[hidden]{display:none}
+.statsdlg{width:min(94vw,560px)}.statsdlg h3{font:600 .85rem var(--f-body);margin:14px 0 6px;color:var(--muted)}
+.stiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.stile{background:var(--sunk);border-radius:10px;padding:10px;display:flex;flex-direction:column}.stile b{font:600 1.6rem var(--f-display)}.stile span{font-weight:600;font-size:.85rem}.stile small{color:var(--muted);font-size:.72rem}
+.sbars{display:flex;align-items:flex-end;gap:2px;height:90px;border-bottom:1px solid var(--line)}.sbars.hrs{height:50px}
+.sbar{flex:1;background:#5b9bd5;border-radius:2px 2px 0 0;min-height:1px}.sbar.now{background:#1f7a4d}
+.saxis{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted)}.sinfo{font-size:.85rem;margin:8px 0 0}
 .memenu button{background:none;color:inherit;text-align:left;padding:10px 12px;border-radius:8px;font:500 .92rem var(--f-body)}
 .memenu button:hover{background:var(--sunk)}
 .mehead{display:flex;gap:10px;align-items:center;padding:8px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:4px}
@@ -286,7 +292,15 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
   .top .stamp{flex-direction:column;align-items:flex-end;gap:4px;font-size:.75rem;white-space:nowrap}
   .top .stamp button{padding:4px 8px;font-size:.75rem}
   .top .rtxt{display:none}
-  .mebtn{max-width:110px}
+  .top{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;grid-template-areas:"t m r me" "u u u u";gap:2px 10px}
+  .top>div:first-child{grid-area:t;min-width:0}.mini{grid-area:m}
+  .top .stamp,.top .stamp .btns{display:contents}
+  .top .stamp>span:first-child{grid-area:u;font-size:.72rem;color:var(--muted)}
+  .top #reload{grid-area:r;width:34px;height:34px;padding:0;border-radius:50%;font-size:1rem}
+  .top #mebtn{grid-area:me;height:34px;padding:0 12px;font-size:.8rem}
+  .top #mebtn.in{width:34px;padding:0;justify-content:center;border-radius:50%}
+  .top #mebtn.in .nm{display:none}.top #mebtn.in .avatar{width:26px;height:26px;font-size:13px}
+  .top #install,.top #bell{display:none}
   .top .stamp{min-width:0}.top .stamp>span:first-child{max-width:100%;overflow:hidden;text-overflow:ellipsis}
   .mini{display:inline-flex;gap:8px;align-items:baseline;white-space:nowrap;font:600 1.05rem var(--f-display);color:var(--fg)}
   .mini span{font:400 .8rem var(--f-body);color:var(--muted)}
