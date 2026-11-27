@@ -2,7 +2,7 @@
 // Pushmeldingen (OneSignal) lopen via dezelfde worker.
 try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js"); } catch (e) {}
 
-const CACHE = "ijs-v1";
+const CACHE = "ijs-v2";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
@@ -22,4 +22,16 @@ self.addEventListener("fetch", e => {
       return r;
     }).catch(() => caches.match(e.request, {ignoreSearch: true}).then(r => r || caches.match("index.html")))
   );
+});
+// Tik op een melding van de app zelf: open (of activeer) de app op het juiste tabblad.
+self.addEventListener("notificationclick", e => {
+  const d = e.notification.data || {};
+  if (!d.ligt) return;   // meldingen van OneSignal handelt OneSignal zelf af
+  e.notification.close();
+  const url = d.url || self.registration.scope;
+  e.waitUntil(self.clients.matchAll({type: "window", includeUncontrolled: true}).then(list => {
+    const c = list.find(w => w.url.startsWith(self.registration.scope));
+    if (c) return c.focus().then(w => (w || c).navigate ? (w || c).navigate(url) : null).catch(() => self.clients.openWindow(url));
+    return self.clients.openWindow(url);
+  }));
 });

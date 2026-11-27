@@ -61,6 +61,8 @@ jobs:
           app_id = json.load(open("site/config.json")).get("onesignal_app_id")
           if alerts and app_id:
               url = f"https://{os.environ['GITHUB_REPOSITORY_OWNER'].lower()}.github.io/{os.environ['GITHUB_REPOSITORY'].split('/')[1]}/"
+              link = (json.load(open("site/data.json")).get("alert_links") or [""])[0] or ""
+              url = url + link if link.startswith("#") else link or url   # tik opent de bron of het juiste tabblad
               body = {"app_id": app_id, "target_channel": "push", "included_segments": ["Total Subscriptions"],
                       "headings": {"en": "Ligt er al ijs?", "nl": "Ligt er al ijs?"},
                       "contents": {"en": "\n".join(alerts)[:900], "nl": "\n".join(alerts)[:900]},
@@ -78,6 +80,8 @@ jobs:
           alerts = json.load(open("site/data.json")).get("alerts") or []
           if alerts:
               url = f"https://{os.environ['GITHUB_REPOSITORY_OWNER'].lower()}.github.io/{os.environ['GITHUB_REPOSITORY'].split('/')[1]}/"
+              link = (json.load(open("site/data.json")).get("alert_links") or [""])[0] or ""
+              url = url + link if link.startswith("#") else link or url   # tik opent de bron of het juiste tabblad
               req = urllib.request.Request("https://ntfy.sh/" + os.environ["NTFY_TOPIC"],
                                            data="\n".join(alerts).encode(),
                                            headers={"Title": "Ligt er al ijs?", "Click": url, "Tags": "ice_skate"})

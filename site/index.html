@@ -98,6 +98,8 @@ button:hover{filter:brightness(.96)}
 .alert{border-radius:8px;padding:10px 14px;background:var(--warn-bg);border-left:4px solid var(--warn)}
 .alert.red,.alert.orange{background:var(--bad-bg);border-left-color:var(--bad)}
 .alert strong{display:block}
+.alert.link{display:block;color:inherit;text-decoration:none;cursor:pointer}
+.alert.link .go{display:block;margin-top:4px;font-size:.85em;font-weight:600;color:var(--warn)}
 .now{display:grid;grid-template-columns:auto 1fr;gap:4px 18px;align-items:center}
 .big{font:600 4rem/1 var(--f-display);font-variant-numeric:tabular-nums}
 .now dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:0;font-size:.95rem}
@@ -691,7 +693,11 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
       A.append(el("div", {cls: "alert " + lvl}, [el("strong", {text: (w.headline || w.event)}),
         el("span", {text: (w.description || "").slice(0, 300)})]));
     }
-    for (const a of d.alerts || []) A.append(el("div", {cls: "alert"}, [el("span", {text: a})]));
+    (d.alerts || []).forEach((a, i) => {
+      const href = (d.alert_links || [])[i];
+      A.append(href ? el("a", {cls: "alert link", href, ...(href[0] === "#" ? {} : {target: "_blank", rel: "noopener"})}, [el("span", {text: a}), el("span", {cls: "go", text: href[0] === "#" ? "Bekijk ›" : "Open bron ›"})])
+                    : el("div", {cls: "alert"}, [el("span", {text: a})]));
+    });
 
     // nu: op de plek van de gebruiker (voorkeuren of GPS), anders De Bilt
     renderHere(d);
@@ -1047,10 +1053,13 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
   const HI = () => +prefs().hi || 8;   // eigen veiligheidsgrens (standaard 8 cm)
   const LVL = cm => cm == null ? 0 : cm < 4.5 ? 1 : cm < HI() ? 2 : 3;
   // melding bij nieuwe metingen binnen de straal rond 'mijn plek' (zolang de app open staat)
-  window.iceNotify = (title, body, tag) => {
+  // tik op de melding opent de app op het juiste tabblad (standaard de ijskaart)
+  window.iceNotify = (title, body, tag, tab = "kaart") => {
+    const url = new URL("#" + tab, location.href.split("#")[0]).href;
+    const fallback = () => { const n = new Notification(title, {body, tag}); n.onclick = () => { window.focus(); location.hash = "#" + tab; n.close(); }; };
     const show = () => navigator.serviceWorker && navigator.serviceWorker.ready
-      .then(r => r.showNotification(title, {body, tag, icon: "icon-192.png", badge: "icon-192.png"}))
-      .catch(() => new Notification(title, {body, tag}));
+      .then(r => r.showNotification(title, {body, tag, icon: "icon-192.png", badge: "icon-192.png", data: {ligt: true, url}}))
+      .catch(fallback);
     if ("Notification" in window && Notification.permission === "granted") show();
     const t = $("toast"); if (t) { t.textContent = `${title}: ${body}`; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => t.hidden = true, 12000); }
   };
