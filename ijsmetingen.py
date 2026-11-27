@@ -532,7 +532,10 @@ def build(prev=None, dearend=None):
                             "time": st["time"], "amateur": bool(st.get("amateur")), **corr}
     ground = [{"name": n, "lat": v["lat"], "lon": v["lon"], "ground": v["ground"], "temp": v["temp"], "time": v["time"]}
               for n, v in stations.items() if v.get("ground") is not None]
-    return {"updated": iso(now), "target": iso(tgt), "points": points, "ground": ground, "wow_count": len(wow), "measurements": ms[:200], "obs": obs,
+    # compacte lijst van alle stations voor "nu bij jou" in de app: [lat, lon, temp, naam, amateur]
+    nearby = [[round(v["lat"], 3), round(v["lon"], 3), v["temp"], n, 0] for n, v in stations.items()] + \
+             [[round(v["lat"], 3), round(v["lon"], 3), v["temp"], v["name"], 1] for v in wow.values()]
+    return {"updated": iso(now), "target": iso(tgt), "points": points, "ground": ground, "wow_count": len(wow), "nearby": nearby, "measurements": ms[:200], "obs": obs,
             "geocache": GEO, "seen": seen_articles, "errors": errors, "a": A_STEFAN,
             "sources": ["Weerwoord (forum)", "IJsclub Vlietland"] + (["Weerstation De Arend"] if dearend else []) + [n for n, _ in NEWS_FEEDS]}
 
