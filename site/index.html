@@ -324,9 +324,10 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
   .top .stamp{flex-direction:column;align-items:flex-end;gap:4px;font-size:.75rem;white-space:nowrap}
   .top .stamp button{padding:4px 8px;font-size:.75rem}
   .top .rtxt{display:none}
-  .top{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto auto;grid-template-areas:"t m s r me" "u u u u u";gap:2px 8px}
+  .top{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto auto;grid-template-areas:"t m s r me" "u u i i i";gap:2px 8px}
   .top #share{grid-area:s;width:34px;height:34px;padding:0;border-radius:50%;justify-content:center}
-  .top #insta{display:none}
+  .top #insta{grid-area:i;justify-self:end;padding:3px 10px;font-size:.75rem}
+  .top #insta .rtxt{display:inline}
   .top>div:first-child{grid-area:t;min-width:0}.mini{grid-area:m}
   .top .stamp,.top .stamp .btns{display:contents}
   .top .stamp>span:first-child{grid-area:u;font-size:.72rem;color:var(--muted)}
@@ -370,7 +371,7 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
       <p class="muted">Weer, vorst, natuurijs en de laatste berichten voor heel Nederland, op één plek.</p>
     </div>
     <div class="mini" id="mini" aria-hidden="true"></div>
-    <div class="stamp"><span><span id="dot" class="dot"></span> <span id="updated">Laden…</span></span><span class="btns"><button id="share" type="button" class="sharebtn" data-share aria-label="Deel met vrienden"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span class="rtxt"> Deel met vrienden</span></button><a id="insta" class="iglink" href="https://www.instagram.com/ligteralijs/" target="_blank" rel="noopener" aria-label="Volg ons op Instagram"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg><span class="rtxt"> Instagram</span></a><button id="install" type="button" hidden>📲 Installeer app</button><button id="bell" type="button" hidden>🔔 Meldingen aan</button><button id="reload" type="button" aria-label="Nu verversen">↻<span class="rtxt"> Nu verversen</span></button><button id="mebtn" type="button" class="mebtn" data-samen hidden>Inloggen</button></span></div>
+    <div class="stamp"><span><span id="dot" class="dot"></span> <span id="updated">Laden…</span></span><span class="btns"><button id="share" type="button" class="sharebtn" data-share aria-label="Deel met vrienden"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span class="rtxt"> Deel met vrienden</span></button><a id="insta" class="iglink" href="https://www.instagram.com/ligteralijs/" target="_blank" rel="noopener" aria-label="Volg ons op Instagram"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg><span class="rtxt"> Volg ons op Instagram</span></a><button id="install" type="button" hidden>📲 Installeer app</button><button id="bell" type="button" hidden>🔔 Meldingen aan</button><button id="reload" type="button" aria-label="Nu verversen">↻<span class="rtxt"> Nu verversen</span></button><button id="mebtn" type="button" class="mebtn" data-samen hidden>Inloggen</button></span></div>
   </div>
 
   <div id="alerts" class="alerts"></div>

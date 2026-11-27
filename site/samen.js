@@ -62,6 +62,8 @@
     const again = !!v.d;
     if (v.d !== today) { v = {d: today, id: (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, "").slice(0, 24)}; store.set("vday", JSON.stringify(v)); }
     let ref = ""; try { const r = document.referrer && new URL(document.referrer); if (r && r.host !== location.host) ref = r.host.slice(0, 80); } catch (e) {}
+    // bezoek via Instagram: de Instagram-app stuurt vaak geen verwijzer mee, maar noemt zichzelf wel in de user-agent
+    if (/Instagram/i.test(navigator.userAgent) || /(^|\.)instagram\.com$/i.test(ref) || /[?&](utm_source|bron)=(ig|insta|instagram)\b/i.test(location.search)) ref = "instagram";
     sb.from("visits").insert({vid: v.id, again, mobile: matchMedia("(max-width:900px)").matches, member: !!user, ref,
       app: matchMedia("(display-mode: standalone)").matches || navigator.standalone === true,
       tab: (location.hash.slice(1) || getPrefs().tab || "weer").slice(0, 20)}).then(() => {}, () => {});
