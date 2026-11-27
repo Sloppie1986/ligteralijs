@@ -43,7 +43,6 @@ Stijl:
 - Begin met een korte, positieve eerste regel (bijv. "Het kan ergens vandaag").
 - Noem 2 tot 4 plekken met hun gemeten dikte in een lopende zin, en waar al geschaatst wordt. Alleen getallen uit de data.
 - 1 zin over het weer van de komende dagen.
-- 1 korte nuchtere zin over veiligheid (zelf prikken, niet alleen).
 - Eindig met "Alle metingen staan op de kaart, link in bio." en een korte vraag zoals "Wie gaat er mee?".
 - Noem nooit een webadres.
 - Zet daarna een witregel en precies deze hashtags: {HASHTAGS}
@@ -110,7 +109,6 @@ def template_caption(hits, ice, meas=None):
         plekken = [f"{m['place']} {cm(m['max'])} cm" for m in meas[:4]]
         lines = ["Het kan ergens vandaag ⛸️", "",
                  "Gemeten in " + ", ".join(plekken[:-1]) + " en " + plekken[-1] + ".", "",
-                 "Wel even zelf prikken voor je opstapt, en niet in je eentje.", "",
                  "Alle metingen staan op de kaart, link in bio.", "Wie gaat er mee?", "", HASHTAGS]
         return "\n".join(lines)
 
