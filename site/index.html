@@ -1022,7 +1022,9 @@ input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);bor
   // beginbeeld van de kaart: eigen plek uit de voorkeuren, anders heel Nederland
   window.iceHome = m => {
     const h = prefs().home;
-    if (h && h.lat) m.setView([h.lat, h.lon], h.zoom || 10, {animate: false}); else m.fitBounds(NL_BOUNDS, {padding: [0, 0], animate: false});
+    // bij openen een halve stap ruimer dan precies passend, zodat er wat lucht rond Nederland of je eigen omgeving zit
+    if (h && h.lat) m.setView([h.lat, h.lon], (h.zoom || 10) - 0.5, {animate: false});
+    else { m.fitBounds(NL_BOUNDS, {padding: [0, 0], animate: false}); m.setZoom(m.getZoom() - 0.5, {animate: false}); }
   };
   if (!location.hash && prefs().tab) history.replaceState(null, "", "#" + prefs().tab);
   function fitIcemap() {
