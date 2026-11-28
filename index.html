@@ -1,0 +1,1262 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<title>Ligt er al ijs? Natuurijs, schaatsweer en ijsdikte in Nederland</title>
+<meta name="description" content="Ligt er al ijs? De verbinder voor al het nieuws en de achtergrond rondom natuurijs in Nederland: weermannen, schaatsforum, gemeten ijsdiktes, ijsclubs en de vorstverwachting op één plek. Elk kwartier bijgewerkt.">
+<meta name="keywords" content="natuurijs, schaatsen, ijs, ijsdikte, schaatsweer, vorst, ijsbaan, ijsclub, Elfstedentocht, weerbericht, weermannen, ligt er al ijs">
+<link rel="canonical" href="https://sloppie1986.github.io/ligteralijs/">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="nl_NL">
+<meta property="og:site_name" content="Ligt er al ijs?">
+<meta property="og:title" content="Ligt er al ijs? Natuurijs en schaatsweer in Nederland">
+<meta property="og:description" content="De verbinder voor al het nieuws en de achtergrond rondom natuurijs: weermannen, schaatsforum, gemeten ijsdiktes en vorstverwachting op één plek.">
+<meta property="og:url" content="https://sloppie1986.github.io/ligteralijs/">
+<meta property="og:image" content="https://sloppie1986.github.io/ligteralijs/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Ligt er al ijs? Natuurijs, vorst en ijsdikte in Nederland">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ligt er al ijs? Natuurijs en schaatsweer in Nederland">
+<meta name="twitter:description" content="De verbinder voor al het nieuws en de achtergrond rondom natuurijs in Nederland.">
+<meta name="twitter:image" content="https://sloppie1986.github.io/ligteralijs/og-image.png">
+<!-- google-site-verification: hier komt de code uit Google Search Console -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+ {"@type":"WebSite","name":"Ligt er al ijs?","alternateName":"Ligteralijs","url":"https://sloppie1986.github.io/ligteralijs/","inLanguage":"nl-NL"},
+ {"@type":"WebApplication","name":"Ligt er al ijs?","url":"https://sloppie1986.github.io/ligteralijs/","applicationCategory":"WeatherApplication","operatingSystem":"Web, Android, iOS","inLanguage":"nl-NL","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"description":"Ligt er al ijs? De verbinder voor al het nieuws en de achtergrond rondom natuurijs in Nederland: weermannen, schaatsforum, gemeten ijsdiktes, ijsclubs en de vorstverwachting op één plek. Elk kwartier bijgewerkt.","image":"https://sloppie1986.github.io/ligteralijs/og-image.png","areaServed":{"@type":"Country","name":"Nederland"},"sameAs":["https://www.instagram.com/ligteralijs/"]}
+]}
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14608f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Ligt er al ijs?">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* Layout: één kolom op telefoon; op breed scherm links 'nu + ijs', rechts de berichtenstroom. */
+:root{
+  --bg:#e9f2f8; --bg2:#f7fbfd; --surface:rgba(255,255,255,.82); --solid:#ffffff; --sunk:#e3eef5; --line:#cbdde9;
+  --fg:#0f2233; --muted:#52677a; --accent:#14608f; --accent-soft:#d3e7f4;
+  --frost:#1d7fc4; --thaw:#c0532c; --ice:#9fd3f0; --ice-deep:#3d9ad6; --shadow:0 1px 2px rgba(16,50,80,.06),0 8px 24px rgba(16,50,80,.07); --warn:#b77900; --warn-bg:#fff4d6; --bad:#b3261e; --bad-bg:#fde4e1; --ok:#2d7a4b;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#07131d; --bg2:#0c1f2e; --surface:rgba(16,34,48,.82); --solid:#102230; --sunk:#16304250; --line:#22405a;
+  --fg:#e6f1f8; --muted:#94aec2; --accent:#8cc8ee; --accent-soft:#17364d;
+  --frost:#7cc3f2; --thaw:#ec9166; --ice:#5fb3e6; --ice-deep:#9fd8fa; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.25); --warn:#f0b43c; --warn-bg:#3a2c0c; --bad:#ff8a80; --bad-bg:#3d1714; --ok:#7fd09c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#07131d; --bg2:#0c1f2e; --surface:rgba(16,34,48,.82); --solid:#102230; --sunk:#16304250; --line:#22405a;
+  --fg:#e6f1f8; --muted:#94aec2; --accent:#8cc8ee; --accent-soft:#17364d;
+  --frost:#7cc3f2; --thaw:#ec9166; --ice:#5fb3e6; --ice-deep:#9fd8fa; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.25); --warn:#f0b43c; --warn-bg:#3a2c0c; --bad:#ff8a80; --bad-bg:#3d1714; --ok:#7fd09c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--f-body);margin:0;min-height:100vh;
+  background-image:radial-gradient(1200px 500px at 85% -10%,var(--bg2),transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%2378a9c9' stroke-opacity='.13' stroke-width='1'%3E%3Cpath d='M0 60 L70 40 L120 90 L200 70 L240 100'/%3E%3Cpath d='M70 40 L60 0'/%3E%3Cpath d='M120 90 L110 170 L40 200 L0 190'/%3E%3Cpath d='M110 170 L190 200 L240 180'/%3E%3Cpath d='M200 70 L190 200'/%3E%3Cpath d='M120 90 L160 0'/%3E%3Cpath d='M40 200 L60 240'/%3E%3C/g%3E%3C/svg%3E");
+  background-attachment:fixed}
+.wrap{max-width:1680px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:2.3rem;font-weight:700;text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:10px}
+h1 .flake{width:1.05em;height:1.05em;flex:none;color:var(--ice-deep)}
+h2{font-size:1.25rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:4px;height:1em;border-radius:2px;background:linear-gradient(var(--ice),var(--ice-deep))}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 20px;margin-bottom:16px}
+.top p{margin:0}
+.stamp{font-size:.85rem;color:var(--muted);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block}
+.dot.stale{background:var(--warn)}
+.btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.sharebtn,.iglink{display:inline-flex;align-items:center;gap:6px}
+.iglink{font:600 .85rem var(--f-body);color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:6px 12px;text-decoration:none}
+.iglink:hover{filter:brightness(.96)}
+.social{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+#bell[aria-pressed="true"]{background:var(--sunk);color:var(--muted)}
+button{font:600 .85rem var(--f-body);color:var(--accent);background:var(--accent-soft);border:0;border-radius:999px;padding:6px 12px;cursor:pointer;transition:filter .15s}
+button:hover{filter:brightness(.96)}
+.grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,6fr) minmax(0,5fr);gap:20px;align-items:start}
+.grid>.forumcol{grid-column:auto}
+@media (max-width:1320px){.grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}.grid>.forumcol{grid-column:1 / -1}}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.panel{background:var(--surface);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0;box-shadow:var(--shadow)}
+.panel>header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.alert{border-radius:8px;padding:10px 14px;background:var(--warn-bg);border-left:4px solid var(--warn)}
+.alert.red,.alert.orange{background:var(--bad-bg);border-left-color:var(--bad)}
+.alert strong{display:block}
+.alert.link{display:block;color:inherit;text-decoration:none;cursor:pointer}
+.alert.link .go{display:block;margin-top:4px;font-size:.85em;font-weight:600;color:var(--warn)}
+.now{display:grid;grid-template-columns:auto 1fr;gap:4px 18px;align-items:center}
+.big{font:600 4rem/1 var(--f-display);font-variant-numeric:tabular-nums}
+.now dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:0;font-size:.95rem}
+.now dt{color:var(--muted)} .now dd{margin:0}
+.stations{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{font-size:.85rem;background:var(--sunk);border-radius:999px;padding:3px 10px}
+.ice-head{display:flex;gap:14px;align-items:center;margin-bottom:10px}
+.gauge{display:flex;gap:4px;align-items:flex-end}
+.gauge i{width:16px;border-radius:4px;background:var(--sunk);border:1px solid var(--line)}
+.gauge i:nth-child(1){height:14px}.gauge i:nth-child(2){height:22px}.gauge i:nth-child(3){height:30px}.gauge i:nth-child(4){height:38px}
+.gauge i.on{background:linear-gradient(180deg,#fff 0%,var(--ice) 35%,var(--ice-deep) 100%);border-color:var(--ice-deep);box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+.icebar{position:relative;height:30px;border-radius:8px;margin:12px 0 4px;overflow:hidden;border:1px solid var(--line);
+  background:linear-gradient(90deg,var(--sunk) 0 13.3%,#dbeef9 13.3% 33.3%,#bfe2f6 33.3% 53.3%,#9fd3f0 53.3% 80%,#7cc2ec 80%)}
+:root[data-theme="dark"] .icebar{background:linear-gradient(90deg,#16304a 0 13.3%,#1b3d5c 13.3% 33.3%,#20496d 33.3% 53.3%,#265883 53.3% 80%,#2d6a9c 80%)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .icebar{background:linear-gradient(90deg,#16304a 0 13.3%,#1b3d5c 13.3% 33.3%,#20496d 33.3% 53.3%,#265883 53.3% 80%,#2d6a9c 80%)}}
+.icebar .now,.icebar .peak{position:absolute;top:0;bottom:0;width:3px;border-radius:2px;transform:translateX(-1px)}
+.icebar .meas{position:absolute;top:-2px;bottom:-2px;width:5px;border-radius:3px;transform:translateX(-2px);background:var(--ok);box-shadow:0 0 0 2px var(--solid)}
+.verdict{padding:10px 12px;border-radius:10px;border-left:6px solid;font-size:.86rem;margin:4px 0 8px}
+.verdict .vhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:2px}
+.verdict strong{font:600 1.05rem var(--f-display)}
+.verdict.green{border-color:#1f8a4c;background:color-mix(in srgb,#1f8a4c 12%,transparent)}.verdict.green strong{color:#1f8a4c}
+.verdict.orange{border-color:#d07a00;background:color-mix(in srgb,#d07a00 12%,transparent)}.verdict.orange strong{color:#c06f00}
+.verdict.red{border-color:#c4322b;background:color-mix(in srgb,#c4322b 12%,transparent)}.verdict.red strong{color:#c4322b}
+.vstrip{display:flex;gap:3px}.vstrip i{width:12px;height:12px;border-radius:3px;background:#9aa6b0}
+.vstrip i.green{background:#1f8a4c}.vstrip i.orange{background:#d07a00}.vstrip i.red{background:#c4322b}
+.practice{margin-top:10px}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ptile{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:10px;background:var(--sunk);border-top:4px solid var(--line);min-width:0}
+.ptile small{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.ptile b{font:600 1.35rem/1.1 var(--f-display)}
+.ptile span{font-size:.74rem;color:var(--muted);overflow-wrap:anywhere}
+.ptile.th{border-top-color:var(--muted)}.ptile.me{border-top-color:var(--ok)}.ptile.pr{border-top-color:var(--frost)}
+.pdiff{margin:6px 0 0;font-size:.84rem}
+.measured{margin-top:10px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);border-left:4px solid var(--ok);background:var(--solid);font-size:.88rem}
+.measured .mv{font:600 1.4rem/1 var(--f-display);color:var(--ok)}
+.measured q{display:block;margin:4px 0;color:var(--muted);font-style:italic}
+.measured figure{margin:10px 0 0}
+.measured figure img{display:block;max-width:100%;border-radius:8px;border:1px solid var(--line);background:#fff}
+.measured figcaption{font-size:.78rem;color:var(--muted);margin-top:4px}
+.icebar .now{background:var(--fg)} .icebar .peak{background:var(--frost);opacity:.9}
+.icebar-scale{position:relative;height:1.1em;font:500 .7rem var(--f-mono);color:var(--muted)}
+.icebar-scale span{position:absolute;top:0;transform:translateX(-50%)}.icebar-scale span:first-child{transform:none}.icebar-scale span:last-child{transform:none}
+.icebar-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--muted);margin-top:4px}
+.icebar-legend span{white-space:nowrap}.icebar-legend span:last-child{white-space:normal}
+.icebar-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.ice-label{font:600 1.4rem/1.1 var(--f-display)}
+.days{overflow-x:auto}
+.days table{border-collapse:collapse;width:100%;min-width:520px;font-size:.85rem}
+.days th,.days td{padding:5px 4px;text-align:center;border-bottom:1px solid var(--line)}
+.days th{font:600 .75rem var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.days td.lbl{text-align:left;color:var(--muted);white-space:nowrap}
+.days .today{background:var(--accent-soft)}
+.night{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin:4px 0 6px;padding:8px 12px;border-radius:10px;background:var(--sunk);font-size:.82rem;color:var(--muted)}
+.night .nl{font:600 .75rem var(--f-body);text-transform:uppercase;letter-spacing:.06em}
+.night strong{font:600 1.5rem/1 var(--f-display);color:var(--fg)}
+.night.frost strong{color:var(--frost)} .night.hard{background:linear-gradient(90deg,var(--accent-soft),var(--sunk))} .night.hard strong{color:var(--frost)}
+.days td.zeker{color:var(--ok)} .days td.matig{color:var(--warn)} .days td.onzeker{color:var(--thaw);font-weight:600}
+.days td.models{font-size:.66rem;color:var(--muted);line-height:1.2;white-space:normal;min-width:44px}
+.neg{color:var(--frost);font-weight:600} .pos{color:var(--thaw)}
+.trend-h{font:600 .8rem var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px}
+.trend{display:flex;flex-direction:column;gap:2px;font-size:.85rem}
+.trow{display:grid;grid-template-columns:1.4em 7.5em 1fr;gap:6px;align-items:baseline;padding:3px 6px;border-radius:4px}
+.trow:nth-child(-n+2){background:var(--accent-soft)} .trow:first-child .tpart{font-weight:600;color:var(--ink,inherit)}
+.trow .mono{font-size:.8rem;font-weight:400}
+.trow.sub{font-size:.8rem;margin-bottom:6px}
+.tdir{text-align:center;font-weight:700} .tpart{color:var(--muted)}
+.trow.beter .tdir{color:var(--frost)} .trow.slechter .tdir{color:var(--thaw)} .trow.gelijk .tdir,.trow.start .tdir{color:var(--muted)}
+.ai{border-left:4px solid var(--muted);background:var(--sunk);border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:.88rem}
+.ai.beter{border-color:var(--frost)} .ai.slechter{border-color:var(--thaw)}
+.ai p{margin:4px 0} .ai summary{cursor:pointer;color:var(--muted);font-size:.8rem;margin:4px 0}
+.ai-item{font-size:.8rem;padding:2px 0} .ai-item.positief{color:var(--frost)} .ai-item.negatief{color:var(--thaw)}
+.bar{height:6px;border-radius:3px;background:var(--frost);margin:0 auto}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.filters button{background:var(--sunk);color:var(--fg);font-weight:600}
+.filters button[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+.feed{display:flex;flex-direction:column}
+.post{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:4px 14px;padding:14px 0;border-top:1px solid var(--line)}
+.post:first-child{border-top:0}
+.post time{font:500 .8rem var(--f-mono);color:var(--muted);padding-top:3px}
+.post .src{font:600 .75rem var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.post h3{font:600 1.05rem/1.3 var(--f-body);text-wrap:pretty}
+.post h3 a{color:var(--fg);text-decoration:none}
+.post h3 a:hover{text-decoration:underline}
+.post p{margin:4px 0 0;font-size:.92rem;color:var(--muted);overflow-wrap:anywhere}
+.post.fresh .src::after{content:"nieuw";margin-left:8px;color:var(--surface);background:var(--thaw);border-radius:4px;padding:0 5px;font-size:.7rem}
+.post .pic{display:block;width:132px;max-width:100%;border-radius:6px;overflow:hidden;background:var(--sunk);align-self:start}
+.post .pic img{display:block;width:100%;height:auto}
+@media (max-width:520px){.post{grid-template-columns:minmax(0,1fr)}.post .pic{width:100%}}
+.forum{display:flex;flex-direction:column;max-height:calc(100vh - 140px);overflow:auto;overscroll-behavior:contain}
+@media (max-width:1320px){.forum{max-height:70vh}}
+.fpost{padding:10px 0;border-top:1px solid var(--line)}
+.fpost:first-child{border-top:0}
+.fpost.reply{padding-left:14px;border-left:3px solid var(--line);margin-left:2px}
+.fmeta{display:flex;gap:10px;align-items:baseline;font-size:.82rem;color:var(--muted);flex-wrap:wrap}
+.fmeta b{color:var(--fg);font-weight:600;font-size:.92rem}
+.fpost p{margin:4px 0 0;font-size:.95rem;white-space:pre-line;overflow-wrap:anywhere}
+.fimgs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.fimgs a{display:block;max-width:100%;border-radius:6px;overflow:hidden;background:var(--sunk)}
+.fimgs img{display:block;max-width:100%;max-height:340px;width:auto;height:auto}
+.fcheck{border-radius:8px;padding:8px 12px;background:var(--warn-bg);border-left:4px solid var(--warn);margin-bottom:10px;font-size:.9rem}
+.fhead a{color:var(--fg);font-weight:600}
+.xgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.xgrid a{display:block;background:var(--sunk);border-radius:8px;padding:8px 10px;text-decoration:none;color:var(--fg)}
+.xgrid a span{display:block;font-size:.78rem;color:var(--muted)}
+.note{font-size:.85rem;color:var(--muted);margin:10px 0 0}
+.report{white-space:pre-line;font-size:.95rem;max-height:16em;overflow:auto}
+footer{margin-top:28px;font-size:.85rem;color:var(--muted);max-width:75ch}
+footer ul{padding-left:1.1em}
+.about-h{font:600 1rem var(--f-body);margin:0 0 .3em;color:var(--fg)}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+.linkbtn{background:none;padding:0;border-radius:0;font:600 .78rem var(--f-body);color:var(--accent);text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
+.tlnote{margin-top:4px}
+.orig{margin-top:6px;padding:8px 10px;border-radius:8px;background:var(--sunk);font-size:.85rem;white-space:pre-line;color:var(--muted)}
+.picwrap{display:flex;flex-direction:column;gap:6px;align-items:stretch;min-width:0}
+.fimgs figure{margin:0;display:flex;flex-direction:column;gap:6px;max-width:100%}
+.explain{align-self:flex-start;background:linear-gradient(180deg,#fff,var(--accent-soft));border:1px solid var(--line);color:var(--accent);font-size:.8rem;padding:4px 12px}
+.uitleg{border-radius:10px;padding:10px 12px;background:var(--solid);border:1px solid var(--line);border-left:4px solid var(--ice-deep);font-size:.88rem;max-width:520px}
+.uitleg p{margin:4px 0}
+.uitleg .ijs{display:inline-block;font:700 .75rem var(--f-body);padding:2px 8px;border-radius:999px;background:var(--sunk)}
+.uitleg .ijs.goed{background:var(--accent-soft);color:var(--frost)} .uitleg .ijs.slecht{background:var(--bad-bg);color:var(--thaw)}
+.terms{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:8px 0 0;font-size:.8rem}
+.terms dt{font-weight:700;white-space:nowrap} .terms dd{margin:0;color:var(--muted)}
+
+/* ijskaart */
+.grid>.mapcol{grid-column:1 / -1}
+.mapgrid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:16px;align-items:start}
+@media (max-width:1100px){.mapgrid{grid-template-columns:minmax(0,1fr)}}
+#icemap{isolation:isolate;height:520px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);z-index:0}
+@media (max-width:900px){#icemap{height:62vh}}
+.maplegend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--muted);margin:8px 0 0}
+.maplegend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px;border:1px solid rgba(0,0,0,.25)}
+.mwarn{background:var(--warn-bg);color:var(--fg);border-radius:10px;padding:10px 12px;font-size:.9rem;margin:0 0 12px}
+.mwarn strong{color:var(--warn)}
+.mlist{display:flex;flex-direction:column;gap:8px;max-height:560px;overflow:auto}
+@media (max-width:1100px){.mlist{max-height:none}}
+.mrow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--solid);cursor:pointer;text-align:left;font:inherit;color:inherit}
+.mrow:hover{border-color:var(--accent)}
+.mvals{display:flex;gap:4px;align-self:start}
+.mval{font:700 1.4rem/1 var(--f-display);min-width:58px;text-align:center;padding:6px 4px;border-radius:8px;color:#fff}
+.mval.meas{background:var(--sunk);color:var(--fg)}
+.mval.meas small{color:var(--muted)}
+.pst{color:var(--accent)!important}
+.mval small{display:block;font:600 .68rem var(--f-body);opacity:.9;margin-top:3px}
+.mrow .mt{font-weight:600}
+.mrow .ms{font-size:.82rem;color:var(--muted)}
+.mrow q{grid-column:1 / -1;font-size:.85rem;color:var(--muted)}
+.lvl0{background:#7d8b96}.lvl1{background:#c0532c}.lvl2{background:#d08a00}.lvl3{background:#1d7fc4}
+.forumrules ul{margin:6px 0 8px;padding-left:20px}.forumrules li{margin:4px 0}
+.gpin{font:700 11px/1 var(--f-body);padding:3px 5px;border-radius:6px;color:#fff;border:1px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);white-space:nowrap}
+.gpin.frost{background:#1d5fa8}.gpin.thaw{background:#b4561e}
+.groundbtn{background:#fff;color:#0f2233;border:0;font:600 12px/1 var(--f-body);padding:7px 9px;cursor:pointer}
+.groundbtn[aria-pressed=true]{background:#1d5fa8;color:#fff}
+.mpin{display:inline-flex;white-space:nowrap;border-radius:999px;overflow:hidden;font:700 12px/1 var(--f-body);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45)}
+.mpin b,.mpin span{padding:5px 6px}
+.mpin b{background:#fff;color:#0f2233}
+.mpin span{color:#fff}
+.leaflet-popup-content{font:14px/1.4 var(--f-body)}
+.leaflet-popup-content q{display:block;color:#52677a;margin:4px 0}
+.more{margin-top:10px}
+.more summary{cursor:pointer;color:var(--muted);font-size:.85rem}
+.more .note{margin-top:6px}
+
+/* samen: metingen doorgeven en forum */
+.samenbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 12px}
+.samenbar #repopen{font-size:.95rem;padding:8px 16px;background:var(--accent);color:#fff}
+.samen-auth{font-size:.85rem;display:inline-flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;flex:none;display:inline-grid;place-items:center;background:var(--accent);color:#fff;font:700 13px/1 var(--f-body)}
+.pby{display:flex;align-items:center;gap:7px}.pby strong{color:inherit}
+.prefphoto{display:flex;align-items:center;gap:12px}.prefphoto .avatar{width:48px;height:48px;font-size:20px}
+.prefset{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:0}.prefset legend{font-size:.8rem;color:var(--muted);padding:0 4px}
+.dform label.chk{flex-direction:row;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0;font-weight:500}.chk input[type=checkbox]{width:18px;height:18px;flex:none}
+.prefphoto[hidden]{display:none}
+.numin{width:4.5em!important;display:inline-block}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:50;max-width:min(92vw,520px);background:#0f2233;color:#fff;padding:10px 14px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.35);font-size:.9rem}
+.mebtn{display:inline-flex;align-items:center;gap:6px;max-width:150px}
+.mebtn.in{background:#1f7a4d;color:#fff}.mebtn .avatar{width:20px;height:20px;font-size:11px;background:#fff;color:#1f7a4d}
+.mebtn span.nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.memenu{position:fixed;z-index:60;min-width:200px;max-width:min(90vw,300px);background:var(--solid,#fff);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:6px;display:flex;flex-direction:column}
+.memenu[hidden]{display:none}
+.statsdlg{width:min(94vw,560px)}.statsdlg h3{font:600 .85rem var(--f-body);margin:14px 0 6px;color:var(--muted)}
+.stiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.stile{background:var(--sunk);border-radius:10px;padding:10px;display:flex;flex-direction:column}.stile b{font:600 1.6rem var(--f-display)}.stile span{font-weight:600;font-size:.85rem}.stile small{color:var(--muted);font-size:.72rem}
+.sbars{display:flex;align-items:flex-end;gap:2px;height:90px;border-bottom:1px solid var(--line)}.sbars.hrs{height:50px}
+.sbar{flex:1;background:#5b9bd5;border-radius:2px 2px 0 0;min-height:1px}.sbar.now{background:#1f7a4d}
+.saxis{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted)}.sinfo{font-size:.85rem;margin:8px 0 0}
+.memenu button{background:none;color:inherit;text-align:left;padding:10px 12px;border-radius:8px;font:500 .92rem var(--f-body)}
+.memenu button:hover{background:var(--sunk)}
+.mehead{display:flex;gap:10px;align-items:center;padding:8px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.mehead .avatar{width:36px;height:36px;font-size:16px}.mehead div{display:flex;flex-direction:column;min-width:0}.mehead small{color:var(--muted);font-size:.75rem;overflow:hidden;text-overflow:ellipsis}
+.authpill{background:#1f7a4d;color:#fff;border-radius:999px;padding:4px 10px;font-weight:700;font-size:.8rem}
+.linkbtn{background:none;padding:0;border-radius:0;text-decoration:underline;color:var(--accent);font-weight:600}
+.pickhint{background:var(--accent-soft);border-radius:10px;padding:8px 12px;margin:0 0 10px;font-weight:600}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--solid);color:var(--fg);padding:0;width:min(440px,calc(100vw - 32px));max-height:calc(100vh - 32px)}
+dialog::backdrop{background:rgba(5,20,30,.45)}
+.dform{display:flex;flex-direction:column;gap:10px;padding:18px}
+.dform label,.sform label{display:flex;flex-direction:column;gap:4px;font-size:.88rem;font-weight:600}
+input,textarea{font:16px var(--f-body);color:var(--fg);background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.srow{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.fileb{flex-direction:row!important;align-items:center;font-weight:600;color:var(--accent);cursor:pointer}
+.fileb input{font-size:.8rem;border:0;background:none;padding:0;width:auto;max-width:180px}
+.sform{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.samenforum{display:flex;flex-direction:column;gap:8px}
+.sthread{border:1px solid var(--line);border-radius:10px;background:var(--solid);padding:10px 12px}
+.sthread summary{cursor:pointer}
+.sthread .sform{margin:10px 0 0}
+.spost{border-top:1px solid var(--line);padding:8px 0 0;margin-top:8px;font-size:.92rem}
+.spost p{margin:2px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.spost.hid{opacity:.5}
+.rphoto{display:block;max-width:100%;max-height:260px;border-radius:8px;margin:6px 0}
+.leaflet-popup-content .rphoto{max-height:180px}
+.modbtns{display:flex;gap:12px;margin-top:4px;font-size:.8rem}
+/* telefoon: één tab tegelijk, vaste tabbalk onderin */
+.tabbar{display:none}
+.mini{display:none}
+@media (max-width:900px){
+  body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+  .wrap{padding-block:0 24px}
+  .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 82%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 12px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line);flex-wrap:nowrap;align-items:center}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+  .top h1{font-size:1.3rem;line-height:1.1;white-space:nowrap;gap:6px}
+  .top p.muted{display:none}
+  .top .stamp{flex-direction:column;align-items:flex-end;gap:4px;font-size:.75rem;white-space:nowrap}
+  .top .stamp button{padding:4px 8px;font-size:.75rem}
+  .top .rtxt{display:none}
+  .top{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;grid-template-areas:"t t s r me" "m u i i i";gap:2px 8px}
+  .top #share{grid-area:s;width:34px;height:34px;padding:0;border-radius:50%;justify-content:center}
+  .top #insta{grid-area:i;justify-self:end;padding:3px 10px;font-size:.75rem}
+  .top #insta .rtxt{display:inline}
+  .top>div:first-child{grid-area:t;min-width:0}.mini{grid-area:m}
+  .top .stamp,.top .stamp .btns{display:contents}
+  .top .stamp>span:first-child{grid-area:u;font-size:.72rem;color:var(--muted)}
+  .top #reload{grid-area:r;width:34px;height:34px;padding:0;border-radius:50%;font-size:1rem}
+  .top #mebtn{grid-area:me;height:34px;padding:0 12px;font-size:.8rem}
+  .top #mebtn.in{width:34px;padding:0;justify-content:center;border-radius:50%}
+  .top #mebtn.in .nm{display:none}.top #mebtn.in .avatar{width:26px;height:26px;font-size:13px}
+  .top #install,.top #bell{display:none}
+  .top .stamp{min-width:0}.top .stamp>span:first-child{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .mini{display:inline-flex;gap:8px;align-items:baseline;white-space:nowrap;font:600 1.05rem var(--f-display);color:var(--fg)}
+  .mini span{font:400 .8rem var(--f-body);color:var(--muted)}
+  @media (max-width:420px){.mini span{display:none}}
+  .top .mini{font-size:.9rem;align-self:center;margin-right:4px}
+  @media (max-width:400px){.top #insta .igl{display:none}}
+  .grid>[data-tab]{display:none}
+  .grid>[data-tab].active{display:flex}
+  .panel{border-radius:12px;padding:14px}
+  .big{font-size:3.2rem}
+  .filters{flex-wrap:nowrap;overflow-x:auto;margin:0 -14px 10px;padding:0 14px 4px;scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .filters button{white-space:nowrap;flex:none}
+  .post{grid-template-columns:minmax(0,1fr);gap:6px}
+  .post time{order:-1;padding:0}
+  .post .pic{width:100%;order:3}
+  .post .pic img{max-height:260px;object-fit:cover}
+  .forum{max-height:none;overflow:visible}
+  .tabbar{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+  .tabbar a{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:10px;text-decoration:none;color:var(--muted);font:600 .78rem var(--f-body)}
+  .tabbar a svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .tabbar a[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
+  .tabbar .badge{position:absolute;top:2px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--thaw);color:#fff;font:700 .68rem/18px var(--f-body);text-align:center}
+}
+@media (prefers-reduced-motion:no-preference){.post.fresh{animation:pop .6s ease-out}@keyframes pop{from{background:var(--accent-soft)}to{background:transparent}}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1><svg class="flake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M12 2l-2 2M12 2l2 2M12 22l-2-2M12 22l2-2M3.3 7l2.7.2M3.3 7l1.1 2.5M20.7 17l-2.7-.2M20.7 17l-1.1-2.5M3.3 17l1.1-2.5M3.3 17l2.7-.2M20.7 7l-1.1 2.5M20.7 7l-2.7.2"/></svg>Ligt er al ijs?</h1>
+      <p class="muted">Weer, vorst, natuurijs en de laatste berichten voor heel Nederland, op één plek.</p>
+    </div>
+    <div class="mini" id="mini" aria-hidden="true"></div>
+    <div class="stamp"><span><span id="dot" class="dot"></span> <span id="updated">Laden…</span></span><span class="btns"><button id="share" type="button" class="sharebtn" data-share aria-label="Deel met vrienden"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg><span class="rtxt"> Deel met vrienden</span></button><a id="insta" class="iglink" href="https://www.instagram.com/ligteralijs/" target="_blank" rel="noopener" aria-label="Volg ons op Instagram"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg><span class="rtxt"><span class="igl"> Volg ons op</span> Instagram</span></a><button id="install" type="button" hidden>📲 Installeer app</button><button id="bell" type="button" hidden>🔔 Meldingen aan</button><button id="reload" type="button" aria-label="Nu verversen">↻<span class="rtxt"> Nu verversen</span></button><button id="mebtn" type="button" class="mebtn" data-samen hidden>Inloggen</button></span></div>
+  </div>
+
+  <div id="alerts" class="alerts"></div>
+
+  <div class="grid">
+    <div class="col mapcol" data-tab="kaart">
+      <section class="panel" aria-labelledby="h-map">
+        <header><h2 id="h-map">Gemeten ijs in Nederland</h2><span class="muted" id="mapmeta"></span></header>
+        <p class="mwarn"><strong>Betreed natuurijs alleen bij minimaal 8 cm en na vrijgave door de ijsmeester of ijsvereniging.</strong> De waarden zijn meldingen van derden en schattingen; de werkelijke ijsdikte verschilt per plek. Rond 4,5 cm kan stevig, helder ijs één schaatser dragen, maar dat blijft een eigen afweging, voor eigen risico. Bij stroming, riet, kwel en bruggen is het ijs dunner.</p>
+        <div class="samenbar" data-samen hidden><button id="repopen" type="button">📏 Meting doorgeven</button><span class="samen-auth"></span></div>
+        <p id="pickhint" class="pickhint" hidden>Tik op de kaart op de plek waar je gemeten hebt.</p>
+        <div class="mapgrid">
+          <div>
+            <div id="icemap" role="region" aria-label="Kaart met gemeten ijsdikte"></div>
+            <div class="maplegend"><span><i class="lvl1"></i>onder 4,5 cm</span><span><i class="lvl2"></i>4,5 tot <span class="hiv">8</span> cm</span><span><i class="lvl3"></i><span class="hiv">8</span> cm of meer</span><span><i class="lvl0"></i>geen schatting</span><span><b style="background:#fff;color:#0f2233;border:1px solid var(--line);border-radius:4px;padding:0 4px">2,4</b> gemeten, gekleurd = prognose 9:00 morgen</span></div>
+          </div>
+          <div class="mlist" id="mlist"></div>
+        </div>
+        <details class="more"><summary>Hoe wordt de prognose berekend?</summary><p class="note">De grondtemperatuur op 10 cm (KNMI-stations) zet je aan met de knop op de kaart. Een vlakdekkende kaart staat bij <a href="https://www.weerplaza.nl/nederland/temperatuur-10-cm/" target="_blank" rel="noopener">Weerplaza</a>.</p><p class="note" id="mapnote"></p></details>
+      </section>
+    </div>
+    <div class="col active" data-tab="overzicht">
+      <section class="panel" aria-labelledby="h-now">
+        <header><h2 id="h-now">Nu in De Bilt</h2><button type="button" id="locbtn" class="linkbtn">📍 Mijn plek</button></header>
+        <div class="now">
+          <div class="big" id="temp">–</div>
+          <dl id="nowdl"></dl>
+        </div>
+        <div class="stations" id="stations"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-ice">
+        <header><h2 id="h-ice">IJsindicator</h2><span class="muted" id="icesrc">rekenmodel, geen meting</span></header>
+        <div class="ice-head">
+          <div class="gauge" id="gauge" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div><div class="ice-label" id="icelabel">–</div><div class="muted" id="icesub"></div></div>
+        </div>
+        <div class="night" id="night" hidden></div>
+        <div style="display:none">
+        </div>
+        <div class="icebar" id="icebar" role="img"><span class="now" id="ib-now"></span><span class="peak" id="ib-peak"></span><span class="meas" id="ib-meas" hidden></span></div>
+        <div class="icebar-scale"><span style="left:0">0</span><span style="left:13.33%">2</span><span style="left:33.33%">5</span><span style="left:53.33%">8</span><span style="left:80%">12</span><span style="right:0">15 cm</span></div>
+        <div class="icebar-legend"><span><i style="background:var(--fg)"></i>nu</span><span><i style="background:var(--frost)"></i>verwachte piek</span><span id="lg-meas" hidden><i style="background:var(--ok)"></i>praktijk (gemeten + bijgegroeid)</span><span>8 cm = vuistregel om op te staan, alleen met akkoord ijsmeester</span></div>
+        <div class="practice" id="practice" hidden></div>
+        <details class="more" id="measwrap" hidden><summary>KNMI-ijspluim en De Arend</summary><div class="measured" id="measured" hidden></div></details>
+        <div class="days" style="margin-top:12px"><table id="days"></table></div>
+        <h3 class="trend-h">Gaat het de goede kant op?</h3>
+        <div class="verdict" id="verdict"></div>
+        <div class="ai" id="ai" hidden></div>
+        <details class="more"><summary>Per dagdeel bekijken</summary>
+          <div class="muted" style="font-size:.8rem;margin:4px 0">Bovenste regel = weermodellen, onderste = stemming in X, forum en nieuws</div>
+          <div class="trend" id="trend"></div>
+        </details>
+        <details class="more"><summary>Uitleg</summary>
+        <p class="note">Trend: per dagdeel de verwachting van dat moment, vergeleken met het dagdeel ervoor. Blauw ▲ = kouder/meer ijs verwacht, rood ▼ = zachter. De stemming telt woorden als vorst, ijs, oostenwind tegenover dooi, zacht, zuidwest; dat is een grove graadmeter, geen echte taalanalyse. Vorstsom = opgetelde graden onder nul (daggemiddelde) over de komende dagen.</p>
+        <p class="note">Temperaturen per dag = gemiddelde van de 3 beste modellen die die dag dekken. De eerste 2 dagen zijn dat de fijnmazige modellen HARMONIE (KNMI), ICON-D2 (Duitsland) en AROME (Frankrijk); die rekenen niet verder vooruit. Daarna ECMWF, ICON-EU en UKMO, en na een week ECMWF en GFS. Spreiding = hoeveel de modellen het oneens zijn over de daggemiddelde temperatuur (groen = eens, rood = onzeker). Houd je vinger op een cijfer voor de waarde per model.</p>
+        <p class="note">IJsdikte geschat uit opgetelde vorstgraden (daggemiddelde onder 0 °C) voor stilstaand, ondiep water zonder sneeuw. Ga nooit het ijs op zonder bericht van de ijsclub of ijsmeester.</p>
+        </details>
+      </section>
+
+      <section class="panel" aria-labelledby="h-report">
+        <header><h2 id="h-report">Weerbericht Buienradar</h2><span class="muted mono" id="reporttime"></span></header>
+        <h3 id="reporttitle" style="font:600 1.1rem var(--f-body);margin-bottom:6px"></h3>
+        <div class="report" id="reporttext"></div>
+      </section>
+    </div>
+
+    <div class="col" data-tab="berichten">
+      <section class="panel" aria-labelledby="h-feed">
+        <header><h2 id="h-feed">Laatste berichten</h2><span class="muted" id="feedcount"></span></header>
+        <div class="filters" id="filters" role="group" aria-label="Filter op bron"></div>
+        <div class="feed" id="feed"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-x">
+        <header><h2 id="h-x">Weermannen op X</h2></header>
+        <div class="xgrid" id="xgrid"></div>
+      </section>
+    </div>
+
+    <div class="col forumcol" data-tab="forum">
+      <section class="panel" data-samen hidden aria-labelledby="h-samen">
+        <header><h2 id="h-samen">Schaatsforum</h2><span class="samen-auth"></span></header>
+        <details class="more forumrules"><summary>Welkom! Lees even de huisregels</summary>
+          <p>Welkom bij het schaatsforum. Hier delen we wat we zelf zien op het ijs, zodat iedereen weet waar het kan en waar (nog) niet.</p>
+          <ul>
+            <li><strong>Eén draadje per locatie.</strong> Zet de plaats en het water in het onderwerp, bijvoorbeeld "Loosdrecht – Hol". Bestaat er al een draadje voor die plek, reageer dan daar.</li>
+            <li><strong>Zeg wat je zelf gezien of gemeten hebt</strong>, met tijdstip. Gemeten ijsdikte kun je ook als meting doorgeven op de IJskaart.</li>
+            <li><strong>Foto's zijn welkom</strong>, maar zonder herkenbare mensen of kentekens.</li>
+            <li><strong>Waarschuw voor gevaar</strong>: wakken, scheuren, stroming, riet, kwel en dun ijs bij bruggen.</li>
+            <li><strong>Moedig niemand aan het ijs op te gaan</strong> als het ijs niet is vrijgegeven. Geen "het houdt wel" zonder meting.</li>
+            <li><strong>Blijf vriendelijk</strong>, ook als je het oneens bent. Geen reclame, politiek of persoonlijke aanvallen.</li>
+            <li><strong>Respecteer eigenaren en verenigingen</strong>: afgesloten banen en particulier water blijven dicht tot de beheerder ze vrijgeeft.</li>
+          </ul>
+          <p class="note">Berichten die hier niet passen, kan de beheerder verbergen of verwijderen. Alles wat je plaatst is voor iedereen zichtbaar; je bent zelf verantwoordelijk voor je bericht en je eigen veiligheid op het ijs.</p>
+        </details>
+        <form id="newthread" class="sform">
+          <input name="title" maxlength="120" placeholder="Plaats en water, bijv. Loosdrecht – Hol" aria-label="Onderwerp">
+          <textarea name="body" rows="3" maxlength="4000" required placeholder="Wat wil je delen?" aria-label="Bericht"></textarea>
+          <div class="srow"><label class="fileb">📷 Foto<input type="file" name="photo" accept="image/*"></label><button type="submit">Nieuwe draad</button></div>
+        </form>
+        <div id="samenforum" class="samenforum"></div>
+      </section>
+      <section class="panel" aria-labelledby="h-forum">
+        <header><h2 id="h-forum">Noodweer forum</h2><span class="muted" id="forummeta"></span></header>
+        <div class="fhead" id="forumhead" style="margin-bottom:10px"></div>
+        <div id="forumcheck"></div>
+        <div class="forum" id="forum"></div>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    <div class="social"><button type="button" class="sharebtn" data-share><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg> Deel met vrienden</button><a class="iglink" href="https://www.instagram.com/ligteralijs/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg> Volg @ligteralijs op Instagram</a></div>
+    <h2 class="about-h">Over Ligt er al ijs?</h2>
+    <p>Ligt er al ijs? is de verbinder voor al het nieuws en de achtergrond rondom natuurijs in Nederland. Alles wat schaatsers willen weten staat op één plek: de vorstverwachting en de IJsindicator, gemeten ijsdiktes op de kaart, berichten van weermannen op X, het Noodweer-forum, het schaatsforum en nieuws van ijsclubs. Handig om te zien of er geschaatst kan worden op sloten, plassen en ijsbanen, van Friesland tot Brabant. Gratis, zonder reclame, te installeren als app en te volgen via Instagram @ligteralijs.</p>
+    <p>Bronnen: KNMI, Open-Meteo, MET Norway, Buienradar, MeteoAlarm, NoodweerBenelux, Wintersportweerman, Kai Zorn, Sneeuwhoogte.nl, Weerstation De Arend, X, Weerwoord, IJsclub Vlietland, NOS, regionale omroepen, PDOK, © OpenStreetMap. Elk kwartier bijgewerkt.</p>
+  </footer>
+</div>
+
+
+<dialog id="logindlg" aria-labelledby="h-login">
+  <form id="loginform" class="dform">
+    <h2 id="h-login">Inloggen</h2>
+    <p class="muted">Je krijgt een link per mail, zonder wachtwoord. Je naam staat bij je berichten en metingen; je e-mailadres is niet zichtbaar voor anderen.</p>
+    <label>Bijnaam<input name="name" required maxlength="40" autocomplete="nickname"></label>
+    <label>E-mail<input name="email" type="email" required autocomplete="email"></label>
+    <p id="loginmsg" class="muted" role="status"></p>
+    <div class="srow"><button type="button" id="logincancel" class="linkbtn">Annuleren</button><button type="submit">Stuur inloglink</button></div>
+  </form>
+</dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+<dialog id="prefdlg" aria-labelledby="h-pref">
+  <form id="prefform" class="dform">
+    <h2 id="h-pref">Mijn voorkeuren</h2>
+    <p class="muted">Wordt op dit toestel bewaard, en bij je account als je bent ingelogd.</p>
+    <label>Bijnaam (bij je berichten en metingen)<input name="name" maxlength="40" autocomplete="nickname"></label>
+    <div id="prefphoto" class="prefphoto"><span id="prefavatar"></span><label class="fileb">📷 Profielfoto kiezen<input type="file" name="avatar" accept="image/*"></label></div>
+    <label>Mijn plek (de ijskaart opent hier)<input name="home" maxlength="60" placeholder="bijv. Loosdrecht" autocomplete="address-level2"></label>
+    <label>Hoe ver ingezoomd<select name="zoom"><option value="12">Mijn dorp of stad</option><option value="10" selected>Omgeving (± 20 km)</option><option value="9">Regio (± 50 km)</option></select></label>
+    <fieldset class="prefset"><legend>Meldingen (zolang de app open staat of op de achtergrond draait)</legend>
+      <label class="chk"><input type="checkbox" name="notifyNear"> Nieuwe ijsmeting binnen <input name="radius" type="number" min="5" max="150" step="5" value="30" class="numin" aria-label="Straal in km"> km van mijn plek</label>
+      <label class="chk"><input type="checkbox" name="notifyReplies"> Reactie op mijn draadje in het forum</label>
+    </fieldset>
+    <label>Op de kaart pas blauw (veilig) vanaf<select name="hi"><option value="8">8 cm (advies)</option><option value="10">10 cm</option><option value="12">12 cm</option><option value="15">15 cm</option></select></label>
+    <label>Thema<select name="theme"><option value="">Zoals mijn telefoon</option><option value="light">Licht</option><option value="dark">Donker</option></select></label>
+    <label>App opent op<select name="tab"><option value="">Weer &amp; ijs</option><option value="kaart">IJskaart</option><option value="berichten">Weersocials</option><option value="forum">Forum</option></select></label>
+    <p id="prefmsg" class="muted" role="status"></p>
+    <div class="srow"><button type="button" id="prefcancel" class="linkbtn">Annuleren</button><button type="submit">Opslaan</button></div>
+  </form>
+</dialog>
+<dialog id="repdlg" aria-labelledby="h-rep">
+  <form id="reportform" class="dform">
+    <h2 id="h-rep">Meting doorgeven</h2>
+    <label>Gemeten ijsdikte (cm)<input name="cm" type="number" inputmode="decimal" min="0.2" max="40" step="0.1" required></label>
+    <div><div class="srow"><button type="button" id="repgps">📍 Mijn locatie</button><button type="button" id="repmap">🗺️ Kies op kaart</button></div><p id="repwhere" class="muted" role="status"></p></div>
+    <label>Plaats of water (optioneel)<input name="place" maxlength="80" placeholder="bijv. Loosdrechtse Plassen, Het Hol"></label>
+    <label>Gemeten op<input name="when" type="datetime-local" required></label>
+    <label>Opmerking (optioneel)<textarea name="note" rows="2" maxlength="500" placeholder="Hoe gemeten, kwaliteit van het ijs, sneeuw erop?"></textarea></label>
+    <label class="fileb">📷 Foto (optioneel)<input type="file" name="photo" accept="image/*"></label>
+    <label>Je naam<input name="name" required maxlength="40"></label>
+    <p class="muted" style="font-size:.8rem">Je meting en foto zijn openbaar zichtbaar. Een meting is een momentopname van één plek en geen vrijgave van het ijs.</p>
+    <p id="repmsg" class="muted" role="status"></p>
+    <div class="srow"><button type="button" id="repcancel" class="linkbtn">Annuleren</button><button type="submit">Versturen</button></div>
+  </form>
+</dialog>
+
+<nav class="tabbar" aria-label="Onderdelen">
+  <a href="#overzicht" data-go="overzicht" aria-current="page"><svg viewBox="0 0 24 24"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7"/><path d="M9 3.5l3 2 3-2M9 20.5l3-2 3 2"/></svg>Weer &amp; ijs</a>
+  <a href="#berichten" data-go="berichten"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg>Weersocials<span class="badge" id="b-berichten" hidden></span></a>
+  <a href="#kaart" data-go="kaart"><svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>IJskaart</a>
+  <a href="#forum" data-go="forum"><svg viewBox="0 0 24 24"><path d="M3 6h12v8H7l-4 3z"/><path d="M15 9h6v8l-3-2h-6v-1"/></svg>Forum<span class="badge" id="b-forum" hidden></span></a>
+</nav>
+
+<script>
+  // thema uit de voorkeuren meteen toepassen
+  try { const th = (JSON.parse(localStorage.getItem("prefs") || "{}")).theme; if (th) document.documentElement.dataset.theme = th; } catch (e) {}
+(() => {
+  const $ = id => document.getElementById(id);
+  const el = (tag, attrs = {}, kids = []) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "text") n.textContent = v; else if (k === "cls") n.className = v; else n.setAttribute(k, v);
+    }
+    for (const c of [].concat(kids)) if (c) n.append(c);
+    return n;
+  };
+  const img = u => typeof u === "string" && u.startsWith("data:image/") ? u : null;
+  const safeUrl = u => (typeof u === "string" && u.startsWith("https://")) ? u : null;
+  const LANG = {de: "Duits", en: "Engels"};
+  // tekst met vertaling: toont de Nederlandse versie, met knop naar het origineel
+  const tl = (obj, f, tag, attrs = {}, max = 0) => {
+    const orig = obj[f] || "", nl = obj[f + "_nl"];
+    const cut = t => max && t.length > max ? t.slice(0, max) + "…" : t;
+    if (!nl) return el(tag, {...attrs, text: cut(orig)});
+    const n = el(tag, {...attrs, text: cut(nl)});
+    return n;
+  };
+  const tlNote = obj => {
+    if (!obj.lang) return null;
+    if (!(obj.title_nl || obj.summary_nl || obj.text_nl)) {
+      const txt = [obj.title, obj.summary, obj.text].filter(Boolean).join("\n\n").slice(0, 1500);
+      return el("div", {cls: "tlnote"}, [el("a", {cls: "linkbtn", target: "_blank", rel: "noopener",
+        href: "https://translate.google.com/?sl=auto&tl=nl&op=translate&text=" + encodeURIComponent(txt), text: `In het ${LANG[obj.lang] || "buitenlands"} · vertaal naar Nederlands`})]);
+    }
+    const b = el("button", {type: "button", cls: "linkbtn", text: `Vertaald uit het ${LANG[obj.lang] || "buitenlands"} · toon origineel`});
+    const box = el("div", {cls: "orig", hidden: ""});
+    box.textContent = [obj.title, obj.summary, obj.text].filter(Boolean).join("\n\n");
+    b.onclick = () => { box.hidden = !box.hidden; b.textContent = box.hidden ? `Vertaald uit het ${LANG[obj.lang] || "buitenlands"} · toon origineel` : "Verberg origineel"; };
+    return el("div", {cls: "tlnote"}, [b, box]);
+  };
+
+  // Bibliotheek: vaste uitleg per soort weerkaart en per vakterm, herkend aan de tekst bij het bericht. Werkt zonder AI.
+  const KAARTEN = [
+    {re: /ijspluim/i, wat: "KNMI-verwachting ijsdikte (pluim)",
+     uitleg: "Het KNMI rekent met alle varianten van het Europese weermodel uit hoe dik het ijs wordt op stilstaand, ondiep water. Elke dunne lijn is één variant; de dikke lijn het gemiddelde. Liggen de lijnen dicht bij elkaar, dan is de verwachting zeker. Let op: het geldt voor kleine, beschutte wateren zonder sneeuw. Grote plassen en stromend water bevriezen veel trager. Vuistregel: pas vanaf zo'n 8-10 cm, en alleen als de ijsclub of ijsmeester het goedkeurt."},
+    {re: /pluim|gefs|\beps\b|ensemble|leden|spreiding|sprijding|cluster/i, wat: "Pluim (ensemble)",
+     uitleg: "Een weermodel wordt tientallen keren gedraaid met steeds iets andere startwaarden. Elke lijn is zo'n variant ('lid'). Lopen de lijnen dicht bij elkaar, dan is de verwachting zeker. Waaieren ze uit (veel spreiding), dan is het onzeker. Kijk naar de dikke lijn (gemiddelde) en naar hoeveel lijnen onder de 0 of onder -5 °C zakken: hoe meer, hoe groter de kans op vorst."},
+    {re: /\b850\b|t850/i, wat: "Temperatuur op 850 hPa (ongeveer 1,5 km hoogte)",
+     uitleg: "Deze kaart toont hoe koud de lucht op ongeveer 1,5 km hoogte is. Dat zegt meer over de echte luchtsoort dan de temperatuur aan de grond. Blauw/paars is koud. Ligt Nederland in lucht van -8 °C of kouder op 850 hPa, dan is er vaak strenge vorst mogelijk (zeker 's nachts bij weinig wind en heldere lucht)."},
+    {re: /\b500\b|geopot|hoogtekaart|straalstroom|jetstream/i, wat: "Hoogtekaart (500 hPa, ongeveer 5,5 km)",
+     uitleg: "Deze kaart laat de grote stroming hoog in de lucht zien. Rood/oranje = hogedruk en warmere lucht, blauw/paars = lagedruk en koude lucht. De lijnen zijn de 'rivieren' waarlangs het weer beweegt. Voor ijs wil je een rode bult (hogedruk) boven Scandinavië of IJsland/Groenland en blauw boven Oost-Europa: dan komt de wind uit het oosten of noorden."},
+    {re: /\b(gfs|ecmwf|ecm|eec|icon|gem|harmonie|arpege|ukmo|uk ?met)\b.*?\d+\s*(u|uur|h)\b|\+\s*\d+\s*(u|uur|h)\b|\b\d{1,3}\s*(u|uur)\b/i, wat: "Modelkaart met luchtdruk",
+     uitleg: "Een kaart van één weermodel voor een tijdstip in de toekomst (het getal met 'u' is het aantal uren vooruit). De lijnen verbinden plaatsen met dezelfde luchtdruk. Bij een hogedrukgebied (H) draait de wind met de klok mee, bij een lagedrukgebied (L) tegen de klok in. Ligt de H ten noorden of noordoosten van ons, dan waait er een oostenwind: koud in de winter. Hoe verder vooruit (boven ±150 uur), hoe onzekerder: zie het als een mogelijkheid, niet als verwachting."},
+    {re: /\b2\s?m\b|minimum|maxima|minima|grondtemp|nachtvorst|vorst in/i, wat: "Temperatuurkaart aan de grond",
+     uitleg: "De verwachte temperatuur op 2 meter hoogte (zoals een gewoon thermometerhuisje). Voor natuurijs telt vooral hoeveel dagen het gemiddeld onder nul blijft, niet één koude nacht. Een paar dagen met maxima onder 0 °C (ijsdagen) geven snel ijsgroei."},
+    {re: /neerslag|sneeuw|regen|radar/i, wat: "Neerslag- of sneeuwkaart",
+     uitleg: "Laat zien waar en hoeveel neerslag er valt. Sneeuw op ijs werkt als een deken: het ijs groeit dan veel trager en wordt slechter van kwaliteit. Voor schaatsijs is droog, helder en koud weer het best."},
+    {re: /stratosfeer|polar\s?vortex|polarwirbel|poolvortex|\bssw\b|opwarming/i, wat: "Stratosfeer / poolvortex",
+     uitleg: "Hoog boven de Noordpool (20-50 km) draait in de winter een koude wervel, de poolvortex. Is die sterk, dan blijft de kou meestal rond de pool en krijgen wij zacht westenwindweer. Raakt hij verstoord (een plotselinge opwarming, SSW), dan kan de kou weken later naar Europa zakken. Dit gaat over kansen op langere termijn, niet over het weer van volgende week."},
+    {re: /\bnao\b|\bao\b|index|teleconn/i, wat: "Index-grafiek (NAO/AO)",
+     uitleg: "Een getal dat de grote drukverdeling samenvat. Een negatieve NAO of AO betekent minder westenwind en meer kans op kou uit het noorden of oosten in West-Europa. Positief betekent meestal zacht en nat winterweer."},
+  ];
+  const BEGRIPPEN = [
+    [/\bgfs\b/i, "GFS", "het Amerikaanse wereldweermodel; draait 4x per dag en is vaak wat te enthousiast over kou op lange termijn."],
+    [/\b(ecmwf|ecm)\b/i, "ECMWF", "het Europese weermodel uit Reading; gemiddeld het betrouwbaarste model."],
+    [/\beec\b|\beps\b/i, "EEC / EPS", "de ensemble- (pluim)versie van het Europese model."],
+    [/\bgefs\b/i, "GEFS", "de ensemble- (pluim)versie van het Amerikaanse GFS-model."],
+    [/\bicon\b/i, "ICON", "het Duitse weermodel."],
+    [/harmonie/i, "HARMONIE", "het fijnmazige model van het KNMI; goed voor de komende 2 dagen."],
+    [/\b(0|00|6|06|12|18)\s?z\b/i, "0z / 6z / 12z / 18z", "het tijdstip (in UTC) waarop een modelrun is gestart. 18z = 19:00 Nederlandse tijd."],
+    [/\b\d+\s?(u|uur|h)\b/i, "+ uur", "hoeveel uur vooruit de kaart kijkt. 168 uur = 7 dagen. Na zo'n 7 dagen wordt het snel onzeker."],
+    [/pluim/i, "pluim", "alle varianten van één model in één grafiek; laat zien hoe zeker de verwachting is."],
+    [/leden|lid\b/i, "leden", "de afzonderlijke varianten in een pluim."],
+    [/spreiding/i, "spreiding", "hoe ver de varianten uit elkaar liggen. Veel spreiding = onzeker."],
+    [/\bmlt\b/i, "MLT", "middellange termijn: ongeveer 4 tot 10 dagen vooruit."],
+    [/blok(kade|keer|king)|blocking/i, "blokkade", "een hardnekkig hogedrukgebied dat de normale westelijke stroming tegenhoudt; kan koude oostenwind brengen."],
+    [/hogedruk|\bhoog\b/i, "hogedruk", "gebied met hoge luchtdruk: meestal droog en rustig. Ten noorden van ons betekent het vaak oostenwind en kou."],
+    [/lagedruk|depressie|\blaag\b/i, "lagedruk", "gebied met lage luchtdruk: wind, wolken en neerslag; vanaf de oceaan brengt het zacht weer."],
+    [/beast from the east/i, "Beast from the East", "bijnaam voor een koude oostenwind uit Rusland/Siberië, zoals in 2018."],
+    [/scandinavi|scandi/i, "hogedruk boven Scandinavië", "het klassieke patroon voor ijswinters: de wind draait naar oost en koude landlucht stroomt naar ons toe."],
+    [/groenland|ijsland/i, "hogedruk bij IJsland/Groenland", "duwt de stroming naar het noorden; koude lucht kan dan vanuit het noorden naar ons komen."],
+    [/zonaal|zonal/i, "zonale stroming", "een stroming van west naar oost: zacht en nat weer voor Nederland."],
+    [/\bnao\b/i, "NAO", "Noord-Atlantische Oscillatie; negatief = meer kans op kou."],
+    [/polar\s?vortex|poolvortex|polarwirbel/i, "poolvortex", "de koude wervel hoog boven de Noordpool; verstoringen kunnen weken later kou brengen."],
+    [/\bssw\b/i, "SSW", "plotselinge stratosfeer-opwarming; kan de poolvortex breken."],
+    [/ijsdag/i, "ijsdag", "een dag waarop het de hele dag vriest (maximum onder 0 °C)."],
+    [/graaddag|vorstsom/i, "vorstsom", "opgetelde graden onder nul; vuistregel: rond 35 opgeteld kan er ondiep natuurijs liggen."],
+  ];
+  const libExplain = ctx => {
+    const k = KAARTEN.find(x => x.re.test(ctx || ""));
+    const terms = BEGRIPPEN.filter(([re]) => re.test(ctx || "")).map(([, t, d]) => [t, d]);
+    return {k, terms};
+  };
+  // "Leg uit"-knop bij een kaart: AI-uitleg als die er is, anders de bibliotheek
+  const explain = (u, ctx, always) => {
+    if (u && u.is_kaart === false) return null;
+    const {k, terms} = libExplain(ctx);
+    if (!u && !k && !terms.length && !always) return null;
+    const kids = [];
+    if (u) kids.push(el("strong", {text: u.wat}), el("p", {text: u.uitleg}),
+      u.ijs && u.ijs !== "niet van toepassing" ? el("span", {cls: "ijs " + (u.ijs === "goed voor ijs" ? "goed" : u.ijs === "slecht voor ijs" ? "slecht" : ""), text: u.ijs}) : null);
+    else {
+      const kk = k || {wat: "Weerkaart lezen", uitleg: "Kijk eerst welk model en welk tijdstip het is (bijv. 'GFS 18z 168 u' = Amerikaans model, 7 dagen vooruit). Blauw/paars is meestal koud of lagedruk, rood/oranje warm of hogedruk. Hoe verder vooruit, hoe onzekerder."};
+      kids.push(el("strong", {text: kk.wat}), el("p", {text: kk.uitleg}));
+    }
+    if (terms.length) kids.push(el("dl", {cls: "terms"}, terms.flatMap(([t, d]) => [el("dt", {text: t}), el("dd", {text: d})])));
+    kids.push(el("div", {cls: "muted", style: "font-size:.72rem;margin-top:4px", text: u ? "Uitleg door Claude (AI); kan zich vergissen." : "Uitleg uit de vaste bibliotheek, herkend aan de tekst bij het bericht."}));
+    const box = el("div", {cls: "uitleg", hidden: ""}, kids);
+    const b = el("button", {type: "button", cls: "explain", text: "💡 Leg uit"});
+    b.onclick = e => { e.preventDefault(); box.hidden = !box.hidden; b.textContent = box.hidden ? "💡 Leg uit" : "Verberg uitleg"; };
+    return el("div", {cls: "explainwrap"}, [b, box]);
+  };
+  const fmtT = v => v == null ? "–" : (Math.round(v * 10) / 10).toLocaleString("nl-NL", {minimumFractionDigits: 1}) + "°";
+  const tz = {timeZone: "Europe/Amsterdam"};
+  const ago = iso => {
+    if (!iso) return "";
+    const m = Math.round((Date.now() - new Date(iso)) / 60000);
+    if (m < 1) return "zojuist";
+    if (m < 60) return m + " min geleden";
+    if (m < 60 * 24) return Math.round(m / 60) + " uur geleden";
+    return new Date(iso).toLocaleDateString("nl-NL", {...tz, day: "numeric", month: "short"});
+  };
+  const WX = {0:"Helder",1:"Vrijwel helder",2:"Half bewolkt",3:"Bewolkt",45:"Mist",48:"Rijpmist",51:"Motregen",53:"Motregen",55:"Motregen",56:"IJzel",57:"IJzel",61:"Lichte regen",63:"Regen",65:"Zware regen",66:"IJzel",67:"IJzel",71:"Lichte sneeuw",73:"Sneeuw",75:"Zware sneeuw",77:"Korrelsneeuw",80:"Buien",81:"Buien",82:"Zware buien",85:"Sneeuwbuien",86:"Sneeuwbuien",95:"Onweer",96:"Onweer",99:"Onweer"};
+  let data = null, filter = "Alles", lastSeen = null;
+  try { lastSeen = localStorage.getItem("ijsklok-seen"); } catch (e) {}
+
+  async function load() {
+    try {
+      const r = await fetch("data.json?t=" + Date.now(), {cache: "no-store"});
+      if (!r.ok) throw new Error(r.status);
+      data = await r.json();
+      render();
+    } catch (e) {
+      $("updated").textContent = "Gegevens konden niet worden geladen. Probeer het zo opnieuw.";
+    }
+  }
+
+  let render = function () {
+    const d = data;
+    const upd = new Date(d.updated);
+    const stale = Date.now() - upd > 2.5 * 3600e3;
+    $("dot").className = "dot" + (stale ? " stale" : "");
+    $("updated").textContent = "Bijgewerkt " + upd.toLocaleString("nl-NL", {...tz, weekday: "short", hour: "2-digit", minute: "2-digit"}) + (stale ? " (verouderd)" : "");
+
+    // waarschuwingen + meldingen
+    const A = $("alerts"); A.replaceChildren();
+    for (const w of d.warnings || []) {
+      const lvl = (w.level || "").toLowerCase();
+      A.append(el("div", {cls: "alert " + lvl}, [el("strong", {text: (w.headline || w.event)}),
+        el("span", {text: (w.description || "").slice(0, 300)})]));
+    }
+    (d.alerts || []).forEach((a, i) => {
+      const href = (d.alert_links || [])[i];
+      A.append(href ? el("a", {cls: "alert link", href, ...(href[0] === "#" ? {} : {target: "_blank", rel: "noopener"})}, [el("span", {text: a}), el("span", {cls: "go", text: href[0] === "#" ? "Bekijk ›" : "Open bron ›"})])
+                    : el("div", {cls: "alert"}, [el("span", {text: a})]));
+    });
+
+    // nu: op de plek van de gebruiker (voorkeuren of GPS), anders De Bilt
+    renderHere(d);
+    const f = d.forecast || {}, c = f.current || {};
+    const bs = (d.buienradar && d.buienradar.stations) || [];
+    const bilt = bs.find(s => s.name === "De Bilt");
+    const st = $("stations"); st.replaceChildren();
+    if (!window._here) {
+    $("h-now").textContent = "Nu in De Bilt";
+    $("temp").textContent = fmtT(bilt ? bilt.temp : c.temperature_2m);
+    const dl = $("nowdl"); dl.replaceChildren();
+    const row = (k, v) => { if (v != null && v !== "") dl.append(el("dt", {text: k}), el("dd", {text: v})); };
+    row("Weer", bilt ? bilt.desc : WX[c.weather_code]);
+    row("Gevoel", bilt && bilt.feel != null ? fmtT(bilt.feel) : (c.apparent_temperature != null ? fmtT(c.apparent_temperature) : null));
+    row("Wind", bilt ? `${bilt.winddir} ${bilt.wind} Bft` : (c.wind_speed_10m != null ? Math.round(c.wind_speed_10m) + " km/u" : null));
+    row("Grond", bilt && bilt.ground != null ? fmtT(bilt.ground) : null);
+    const daily = f.daily || {};
+    const ti = (daily.time || []).indexOf(new Date().toLocaleDateString("sv-SE", tz));
+    if (ti >= 0) row("Vandaag", `${fmtT(daily.temperature_2m_min[ti])} / ${fmtT(daily.temperature_2m_max[ti])}`);
+    for (const s of bs) if (s.name !== "De Bilt") st.append(el("span", {cls: "chip mono", text: `${s.name} ${fmtT(s.temp)}`}));
+    }
+
+    // ijs
+    const ice = d.ice;
+    if (ice) {
+      [...$("gauge").children].forEach((g, i) => g.classList.toggle("on", i < ice.level));
+      $("icelabel").textContent = ice.labels[ice.level] + (ice.today ? ` · ~${ice.today.cm} cm` : "");
+      $("icesub").textContent = ice.peak && ice.peak.cm > (ice.today ? ice.today.cm : 0)
+        ? `Verwachte piek ${new Date(ice.peak.date).toLocaleDateString("nl-NL", {weekday: "short", day: "numeric", month: "short"})}: ~${ice.peak.cm} cm (${ice.labels[ice.peak_level].toLowerCase()})`
+        : "Geen verdere ijsgroei verwacht in de komende dagen";
+      $("icesrc").textContent = "rekenmodel";
+      const pos = cm => Math.max(0, Math.min(100, (cm || 0) / 15 * 100)) + "%";
+      const nowCm = ice.today ? ice.today.cm : 0, peakCm = ice.peak ? ice.peak.cm : nowCm;
+      $("ib-now").style.left = pos(nowCm); $("ib-peak").style.left = pos(peakCm); $("ib-peak").hidden = !(peakCm > nowCm);
+      const sn = d.schaatsnieuws || {}, ms = sn.latest;
+      const pr = practice(d, nowCm);
+      $("ib-meas").hidden = !pr; $("lg-meas").hidden = !pr;
+      if (pr) $("ib-meas").style.left = pos(pr.p.now_cm ?? pr.p.min);
+      const MS = $("measured"); MS.hidden = !(ms || img(sn.knmi_pluim)); MS.replaceChildren();
+      $("measwrap").hidden = MS.hidden;
+      if (ms) {
+        const when = new Date(ms.time).toLocaleString("nl-NL", {weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
+        const su = safeUrl(sn.url);
+        MS.append(el("div", {}, [el("span", {cls: "mv", text: ms.cm.toLocaleString("nl-NL") + " cm"}), document.createTextNode(` gemeten · ${when}`)]),
+          el("q", {text: ms.text}),
+          su ? el("a", {href: su, target: "_blank", rel: "noopener", text: "Schaatsnieuws van Weerstation De Arend (Kortenhoef)"}) : null);
+      }
+      if (img(sn.knmi_pluim)) {
+        const ku = safeUrl(sn.knmi_url);
+        MS.append(el("figure", {}, [
+          ku ? el("a", {href: ku, target: "_blank", rel: "noopener"}, [el("img", {src: sn.knmi_pluim, alt: "KNMI-verwachting ijsdikte De Bilt", loading: "lazy"})]) : el("img", {src: sn.knmi_pluim, alt: ""}),
+          el("figcaption", {text: "KNMI-verwachting ijsdikte en watertemperatuur, De Bilt"}),
+          explain(null, "KNMI ijspluim ijsdikte", true)]));
+      }
+      $("icebar").setAttribute("aria-label", `IJsdikte nu ongeveer ${nowCm} cm, verwachte piek ${peakCm} cm, op een schaal tot 15 cm`);
+      const today = new Date().toLocaleDateString("sv-SE", tz);
+      // komende (of afgelopen) nacht: minimum van de dag erna, als gemiddelde van de modellen
+      {
+        const hr = +new Date().toLocaleString("en-GB", {...tz, hour: "2-digit", hour12: false});
+        const fut = ice.rows.filter(r => r.date >= today);
+        const nr = hr < 10 ? fut[0] : fut[1];
+        const N = $("night"); N.hidden = !nr; N.replaceChildren();
+        if (nr) {
+          const mins = Object.values(nr.min_per_model || {});
+          N.className = "night" + (nr.tmin <= -5 ? " hard" : nr.tmin < 0 ? " frost" : "");
+          N.append(el("span", {cls: "nl", text: hr < 10 ? "Afgelopen nacht" : "Komende nacht"}),
+            el("strong", {cls: "mono", text: fmtT(nr.tmin)}),
+            el("span", {text: (mins.length > 1 ? `modellen ${fmtT(Math.max(...mins))} tot ${fmtT(Math.min(...mins))}` : "") + " · De Bilt, 1,5 m hoogte. Bij heldere lucht en weinig wind kan het in open land en laagtes enkele graden kouder worden; aan de grond ook."}));
+        }
+      }
+      const rows = ice.rows.filter(r => r.date >= today).slice(0, 10);
+      const T = $("days"); T.replaceChildren();
+      const head = el("tr", {}, [el("th", {text: ""})]);
+      const rMin = el("tr", {}, [el("td", {cls: "lbl", text: "Min (nacht)"})]);
+      const rMax = el("tr", {}, [el("td", {cls: "lbl", text: "Max (dag)"})]);
+      const rMean = el("tr", {}, [el("td", {cls: "lbl", text: "Gemiddeld"})]);
+      const rCm = el("tr", {}, [el("td", {cls: "lbl", text: "IJs cm"})]);
+      const rSp = el("tr", {}, [el("td", {cls: "lbl", text: "Spreiding"})]);
+      const rMo = el("tr", {}, [el("td", {cls: "lbl", text: "Modellen"})]);
+      const short = n => n.split(" ")[0].replace("HARMONIE", "HARM").replace("ECMWF", "EC").replace("ICON-D2", "D2").replace("ICON-EU", "EU").replace("AROME", "AROME");
+      for (const r of rows) {
+        const cls = r.date === today ? "today" : "";
+        head.append(el("th", {cls, text: new Date(r.date).toLocaleDateString("nl-NL", {weekday: "short", day: "numeric"})}));
+        const tc = v => el("td", {cls: cls + " mono " + (v < 0 ? "neg" : "pos"), text: fmtT(v)});
+        rMin.append(tc(r.tmin)); rMax.append(tc(r.tmax)); rMean.append(tc(r.tmean));
+        const td = el("td", {cls: cls + " mono", text: r.cm ? r.cm.toLocaleString("nl-NL") : "–"});
+        if (r.cm) td.prepend(el("div", {cls: "bar", style: `width:${Math.min(100, r.cm * 6)}%`}));
+        rCm.append(td);
+        const sp = r.spread;
+        rSp.append(el("td", {cls: cls + " mono " + (sp == null ? "" : sp <= 1 ? "zeker" : sp <= 2.5 ? "matig" : "onzeker"), text: sp == null ? "–" : "±" + (sp / 2).toLocaleString("nl-NL", {maximumFractionDigits: 1}),
+          title: r.per_model ? Object.entries(r.per_model).map(([m, v]) => `${m}: ${fmtT(v)}`).join("\n") : ""}));
+        rMo.append(el("td", {cls: cls + " models", text: (r.models || []).map(short).join(" ") || "–"}));
+      }
+      T.append(head, rMin, rMax, rMean, rCm);
+      if (rows.some(r => r.models)) T.append(rSp, rMo);
+    }
+    // beoordeling door Claude
+    const AI = $("ai"), ai = d.ai;
+    AI.hidden = !ai; AI.replaceChildren();
+    if (ai) {
+      const eff = {positief: "▲ goed voor ijs", neutraal: "▬ neutraal", negatief: "▼ slecht voor ijs"};
+      AI.className = "ai " + ({positief: "beter", negatief: "slechter"}[ai.effect_ijsdikte] || "gelijk");
+      AI.append(
+        el("div", {cls: "ai-head"}, [el("strong", {text: eff[ai.effect_ijsdikte] || ai.effect_ijsdikte}),
+          el("span", {cls: "muted", text: ` · richting ${ai.richting} · zekerheid ${ai.zekerheid} · ${ai.n_berichten} berichten, ${ai.n_kaarten} kaarten · ${new Date(ai.at).toLocaleTimeString("nl-NL", {hour: "2-digit", minute: "2-digit"})}`})]),
+        el("p", {text: ai.samenvatting}));
+      const det = el("details", {}, [el("summary", {text: "Per bericht en kaart"})]);
+      for (const b of ai.berichten || []) det.append(el("div", {cls: "ai-item " + b.effect, text: `${{positief: "▲", negatief: "▼"}[b.effect] || "▬"} ${b.bron}: ${b.kern}`}));
+      for (const k of ai.kaarten || []) det.append(el("div", {cls: "ai-item " + k.effect, text: `${{positief: "▲", negatief: "▼"}[k.effect] || "▬"} Kaart ${k.nr}: ${k.wat}`}));
+      AI.append(det, el("div", {cls: "muted", style: "font-size:.75rem", text: "Beoordeeld door Claude (AI), één keer per dagdeel. Kan zich vergissen; kijk zelf naar de berichten."}));
+    }
+    // trend: één oordeel in kleur, met een strook van de laatste dagdelen
+    {
+      const V = $("verdict"); V.replaceChildren();
+      const H = d.ice_trend || [], last = H[H.length - 1];
+      const fc = ((d.ice || {}).rows || []).filter(r => r.forecast).slice(0, 3);
+      const thaw = fc.length && fc.every(r => r.tmean > 0);
+      const col = h => !h ? "grey" : (h.frost === 0 && h.peak_cm < 0.5) ? "red" : h.dir === "beter" ? "green" : h.dir === "slechter" ? "orange" : "grey";
+      let c = thaw ? "red" : col(last);
+      if (c === "grey") { const prevC = H.slice(0, -1).reverse().map(col).find(x => x !== "grey"); c = prevC || "green"; }
+      const txt = {green: ["De goede kant op", "De verwachting wordt kouder of het ijs dikker dan bij de vorige run."],
+                   orange: ["Minder goed", "De verwachting is zachter of het ijs dunner dan bij de vorige run."],
+                   red: ["Dooi: het is voorbij", "De komende dagen dooit het. IJs wordt zwakker; banen gaan dicht."]}[c];
+      const pk = last && last.peak_cm ? `Piek ~${last.peak_cm.toLocaleString("nl-NL")} cm` : "Geen ijsgroei verwacht";
+      const prev = H[H.length - 2];
+      const cmp = prev && last ? ` (was ${prev.peak_cm.toLocaleString("nl-NL")} cm ${new Date(prev.date).toLocaleDateString("nl-NL", {weekday: "short"})} ${prev.part})` : "";
+      const strip = el("div", {cls: "vstrip", "aria-hidden": "true"}, H.slice(-8).map(h => el("i", {cls: col(h), title: `${new Date(h.date).toLocaleDateString("nl-NL", {weekday: "short"})} ${h.part}: ${h.dir || "start"}`})));
+      V.className = "verdict " + c;
+      V.append(el("div", {cls: "vhead"}, [el("strong", {text: txt[0]}), strip]), el("div", {text: `${txt[1]} ${pk}${cmp}.`}));
+    }
+    const TR = $("trend"); TR.replaceChildren();
+    const hist = (d.ice_trend || []).slice().reverse();
+    if (!hist.length) TR.append(el("div", {cls: "muted", text: "Nog geen geschiedenis; vanaf nu wordt elk dagdeel bewaard."}));
+    const sym = {beter: "▲", slechter: "▼", gelijk: "▬"};
+    for (const h of hist) {
+      const day = new Date(h.date).toLocaleDateString("nl-NL", {weekday: "short"});
+      const dir = h.dir || "start";
+      const peak = h.peak_cm ? `piek ~${h.peak_cm.toLocaleString("nl-NL")} cm` : "geen ijs";
+      TR.append(el("div", {cls: "trow " + dir}, [
+        el("span", {cls: "tdir", text: sym[dir] || "•", title: h.dir ? `${h.dir} dan het dagdeel ervoor` : "eerste meting"}),
+        el("span", {cls: "tpart", text: `${day} ${h.part}`}),
+        el("span", {cls: "mono", text: `${peak} · vorstsom ${h.frost.toLocaleString("nl-NL")} · koudste ${fmtT(h.coldest)} · ${h.frost_nights} vorstnacht${h.frost_nights === 1 ? "" : "en"}`})]));
+      const m = h.mood || {n: 0};
+      const md = h.mood_dir || "start";
+      TR.append(el("div", {cls: "trow sub " + md}, [
+        el("span", {cls: "tdir", text: sym[md] || "•", title: h.mood_dir ? `stemming ${h.mood_dir} dan het dagdeel ervoor` : "te weinig berichten om te vergelijken"}),
+        el("span", {cls: "tpart", text: "berichten"}),
+        el("span", {text: (m.n ? `${m.n} in 6 uur: ${m.cold} over kou/ijs, ${m.mild} over zacht weer` : "geen nieuwe berichten") + (h.ai ? ` · Claude: ${h.ai.effect_ijsdikte} voor ijs` : "")})]));
+    }
+
+    // weerbericht
+    const rep = (d.buienradar && d.buienradar.report) || {};
+    $("reporttitle").textContent = rep.title || "";
+    $("reporttext").textContent = rep.text || rep.summary || "";
+    $("reporttime").textContent = rep.published ? new Date(rep.published).toLocaleString("nl-NL", {weekday: "short", hour: "2-digit", minute: "2-digit"}) : "";
+
+    renderFeed();
+    renderForum();
+
+    // X
+    const X = $("xgrid"); X.replaceChildren();
+    for (const x of d.x_accounts || []) {
+      const u = safeUrl(x.url); if (!u) continue;
+      X.append(el("a", {href: u, target: "_blank", rel: "noopener"}, [document.createTextNode("@" + x.handle), el("span", {text: x.why === "eigen keuze" ? "jouw lijst" : x.why})]));
+    }
+  }
+;
+  // ---------------- theorie tegenover praktijk
+  function practice(d, theory) {
+    const box = $("practice"); box.replaceChildren();
+    const pts = ((d.ijskaart || {}).points || []).filter(p => p.lat != null);
+    const h = prefs().home, ref = h && h.lat ? h : {lat: 52.1, lon: 5.18, name: "De Bilt"};
+    const R = +prefs().radius || 30;
+    const near = pts.map(p => ({p, km: kmTo2(ref.lat, ref.lon, p.lat, p.lon)})).filter(x => x.km <= Math.max(R, 30))
+      .sort((a, b) => b.p.time.localeCompare(a.p.time) || a.km - b.km)[0];
+    if (!near) { box.hidden = true; return null; }
+    const p = near.p, nowP = p.now_cm ?? p.min, since = nowP - p.min, night = p.night_gain;
+    const when = new Date(p.time).toLocaleString("nl-NL", {...tz, weekday: "short", hour: "2-digit", minute: "2-digit"});
+    const tile = (cls, lbl, val, sub) => el("div", {cls: "ptile " + cls}, [el("small", {text: lbl}), el("b", {text: val}), el("span", {text: sub})]);
+    const n1 = v => (+v).toLocaleString("nl-NL", {maximumFractionDigits: 1});
+    box.append(el("div", {cls: "pgrid"}, [
+      tile("th", "Theorie", `${n1(theory)} cm`, "rekenmodel De Bilt"),
+      tile("me", "Gemeten", `${n1(p.min)} cm`, `${p.place}, ${when}${near.km >= 1 ? ` · ${Math.round(near.km)} km` : ""}`),
+      tile("pr", "Praktijk nu", `±${n1(nowP)} cm`, `${since >= 0.1 ? "+" + n1(since) + " sinds meting" : "nog niets bijgekomen"}${p.morning_cm != null ? ` · morgen 9:00 ±${n1(p.morning_cm)}` : ""}`)]));
+    const diff = nowP - theory;
+    box.append(el("p", {cls: "pdiff", text: Math.abs(diff) < 0.3 ? "De praktijk klopt ongeveer met de theorie."
+      : `De praktijk ligt ${n1(Math.abs(diff))} cm ${diff < 0 ? "onder" : "boven"} de theorie${diff < 0 ? " (wind, sneeuw, stroming of later dichtgevroren)" : ""}.`}));
+    box.hidden = false;
+    return near;
+  }
+
+  // ---------------- nu bij jou
+  const kmTo2 = (a, b, c, e) => { const r = Math.PI / 180, x = (e - b) * r * Math.cos((a + c) / 2 * r); return 6371 * Math.hypot(x, (c - a) * r); };
+  window._here = null;
+  async function renderHere(d) {
+    const h = prefs().home;
+    $("locbtn").textContent = h ? "📍 " + h.name : "📍 Mijn plek";
+    if (!h || !h.lat) { window._here = null; window._hereT = null; return; }
+    const k = d.ijskaart || {}, list = k.nearby || [];
+    // dichtstbijzijnde station: amateur alleen binnen 10 km, KNMI binnen 40 km
+    let best = null;
+    for (const [la, lo, t, name, am] of list) {
+      const km = kmTo2(h.lat, h.lon, la, lo);
+      if (km > (am ? 10 : 40)) continue;
+      if (!best || km < best.km) best = {km, t, name, am};
+    }
+    const g = (k.ground || []).map(x => ({...x, km: kmTo2(h.lat, h.lon, x.lat, x.lon)})).sort((a, b) => a.km - b.km)[0];
+    window._here = true; window._hereT = best ? best.t : null;
+    $("h-now").textContent = "Nu in " + h.name;
+    const dl = $("nowdl"); dl.replaceChildren();
+    const row = (a, b) => { if (b != null && b !== "") dl.append(el("dt", {text: a}), el("dd", {text: b})); };
+    $("temp").textContent = best ? fmtT(best.t) : "–";
+    row("Gemeten", best ? `${best.am ? "amateurstation " : "KNMI "}${best.name}, ${Math.round(best.km)} km` : "geen station dichtbij");
+    if (g && g.km <= 40) row("Grond 10 cm", `${fmtT(g.ground)} (KNMI ${g.name}, ${Math.round(g.km)} km)`);
+    // verwachting voor precies deze plek (Open-Meteo, in de browser opgehaald en 30 min bewaard)
+    const ck = `om-${h.lat.toFixed(2)},${h.lon.toFixed(2)}`;
+    let om = null;
+    try { const c = JSON.parse(sessionStorage.getItem(ck) || "null"); if (c && Date.now() - c.at < 30 * 60e3) om = c.d; } catch (e) {}
+    if (!om) {
+      try {
+        om = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${h.lat}&longitude=${h.lon}&current=apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m&daily=temperature_2m_min,temperature_2m_max&timezone=Europe%2FAmsterdam&forecast_days=2`)).json();
+        try { sessionStorage.setItem(ck, JSON.stringify({at: Date.now(), d: om})); } catch (e) {}
+      } catch (e) { om = null; }
+    }
+    if (om && om.current) {
+      const c = om.current, dd = om.daily || {};
+      row("Weer", WX[c.weather_code]);
+      row("Gevoel", c.apparent_temperature != null ? fmtT(c.apparent_temperature) : null);
+      row("Wind", c.wind_speed_10m != null ? `${Math.round(c.wind_speed_10m)} km/u` : null);
+      if (dd.temperature_2m_min) row("Vandaag", `${fmtT(dd.temperature_2m_min[0])} / ${fmtT(dd.temperature_2m_max[0])}`);
+      if (dd.temperature_2m_min && dd.temperature_2m_min[1] != null) row("Komende nacht", fmtT(dd.temperature_2m_min[1]));
+    }
+  }
+  async function useMyLocation() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const lat = +pos.coords.latitude.toFixed(4), lon = +pos.coords.longitude.toFixed(4);
+      let name = "mijn plek";
+      try {
+        const r = await (await fetch(`https://api.pdok.nl/bzk/locatieserver/search/v3_1/reverse?lat=${lat}&lon=${lon}&type=woonplaats&rows=1`)).json();
+        name = (r.response.docs[0] || {}).woonplaatsnaam || name;
+      } catch (e) {}
+      const P = prefs(); P.home = {name, lat, lon, zoom: (P.home && P.home.zoom) || 10};
+      try { localStorage.setItem("prefs", JSON.stringify(P)); } catch (e) {}
+      if (window.savePrefsToAccount) window.savePrefsToAccount(P);
+      if (data) render();
+    }, () => alert("Je locatie kon niet worden bepaald. Je kunt je plek ook invullen bij ⚙ voorkeuren."), {timeout: 10000, maximumAge: 600000});
+  }
+  $("locbtn").onclick = () => prefs().home && !confirm(`Je plek staat op ${prefs().home.name}. Opnieuw bepalen met GPS?`) ? null : useMyLocation();
+
+  function allPosts() {
+    const d = data, out = [...(d.posts || [])];
+    for (const c of d.comments || []) out.push({...c, title: c.summary ? c.summary.slice(0, 140) : c.title, summary: "Reactie bij: " + (c.article || ""), source: "Noodweer reacties"});
+    if (d.sneeuwhoogte) out.push({...d.sneeuwhoogte, time: d.sneeuwhoogte.time || null});
+    return out.sort((a, b) => (b.time || "").localeCompare(a.time || ""));
+  }
+
+  function renderFeed() {
+    const posts = allPosts();
+    const sources = ["Alles", ...new Set(posts.map(p => p.source))];
+    const F = $("filters"); F.replaceChildren();
+    for (const s of sources) {
+      const b = el("button", {type: "button", "aria-pressed": String(s === filter), text: s});
+      b.onclick = () => { filter = s; renderFeed(); };
+      F.append(b);
+    }
+    const list = posts.filter(p => filter === "Alles" || p.source === filter);
+    $("feedcount").textContent = list.length + " berichten";
+    const FE = $("feed"); FE.replaceChildren();
+    if (!list.length) FE.append(el("div", {cls: "empty", text: "Nog geen berichten van deze bron."}));
+    for (const p of list) {
+      const u = safeUrl(p.url);
+      const fresh = lastSeen && p.time && p.time > lastSeen;
+      const ttl = p.title_nl || p.title || "";
+      const title = u ? el("a", {href: u, target: "_blank", rel: "noopener", text: ttl || "(zonder titel)"}) : document.createTextNode(ttl);
+      const pic = img(p.img) ? (u ? el("a", {cls: "pic", href: u, target: "_blank", rel: "noopener"}, [el("img", {src: p.img, alt: "", loading: "lazy"})]) : el("div", {cls: "pic"}, [el("img", {src: p.img, alt: "", loading: "lazy"})])) : el("span");
+      FE.append(el("article", {cls: "post" + (fresh ? " fresh" : "")}, [
+        el("time", {datetime: p.time || "", text: p.time ? ago(p.time) : (p.date || "")}),
+        el("div", {}, [el("div", {cls: "src", text: p.source + (p.comments ? ` · ${p.comments} reacties` : "")}), el("h3", {}, [title]), p.summary ? tl(p, "summary", "p", {}, 260) : null, tlNote(p)]),
+        el("div", {cls: "picwrap"}, [pic, img(p.img) && (p.uitleg || (p.source || "").startsWith("@")) ? explain(p.uitleg, [p.title, p.summary].join(" ")) : null])
+      ]));
+    }
+  }
+
+  function renderForum() {
+    const fo = data.forum || {};
+    const H = $("forumhead"); H.replaceChildren();
+    const fu = safeUrl(fo.url);
+    if (fo.title) H.append(fu ? el("a", {href: fu, target: "_blank", rel: "noopener", text: fo.title}) : document.createTextNode(fo.title));
+    $("forummeta").textContent = fo.total != null ? `${fo.total} reacties · ${fo.closed ? "op slot" : "open"}` : "";
+    const C = $("forumcheck"); C.replaceChildren();
+    if (fo.check) C.append(el("div", {cls: "fcheck", text: fo.check}));
+    const F = $("forum"); F.replaceChildren();
+    const list = fo.posts || [];
+    if (!list.length) F.append(el("div", {cls: "empty", text: "Nog geen reacties opgehaald."}));
+    for (const p of list) {
+      const fresh = lastSeen && p.time > lastSeen;
+      const imgs = el("div", {cls: "fimgs"});
+      for (const im of p.images || []) {
+        const src = img(im.img); if (!src) continue;
+        const href = safeUrl(im.src);
+        const pic = el("img", {src, alt: "Kaart of grafiek bij reactie van " + p.author, loading: "lazy"});
+        imgs.append(el("figure", {}, [href ? el("a", {href, target: "_blank", rel: "noopener"}, [pic]) : pic, explain(im.uitleg, p.text, true)]));
+      }
+      F.append(el("article", {cls: "fpost" + (p.reply ? " reply" : "") + (fresh ? " fresh" : "")}, [
+        el("div", {cls: "fmeta"}, [el("b", {text: p.author}), el("time", {datetime: p.time, text: ago(p.time)}), p.likes ? el("span", {text: "▲ " + p.likes}) : null, fresh ? el("span", {cls: "chip", text: "nieuw"}) : null]),
+        p.text ? tl(p, "text", "p") : null, tlNote(p),
+        imgs.children.length ? imgs : null
+      ]));
+    }
+  }
+
+  function markSeen() {
+    try { localStorage.setItem("ijsklok-seen", new Date().toISOString()); } catch (e) {}
+  }
+
+  const NL_BOUNDS = [[50.85, 3.6], [53.45, 7.05]];
+  const prefs = () => { try { return JSON.parse(localStorage.getItem("prefs") || "{}"); } catch (e) { return {}; } };
+  // beginbeeld van de kaart: eigen plek uit de voorkeuren, anders heel Nederland
+  window.iceHome = m => {
+    const h = prefs().home;
+    // bij openen een halve stap ruimer dan precies passend, zodat er wat lucht rond Nederland of je eigen omgeving zit
+    if (h && h.lat) m.setView([h.lat, h.lon], (h.zoom || 10) - 0.5, {animate: false});
+    else { m.fitBounds(NL_BOUNDS, {padding: [0, 0], animate: false}); m.setZoom(m.getZoom() - 0.5, {animate: false}); }
+  };
+  if (!location.hash && prefs().tab) history.replaceState(null, "", "#" + prefs().tab);
+  function fitIcemap() {
+    const m = window._icemap; if (!m) return;
+    m.invalidateSize();
+    if (window._icefit && $("icemap").offsetHeight) { window.iceHome(m); window._icefit = false; }
+  }
+  window.addEventListener("resize", () => setTimeout(fitIcemap, 100));
+  const TABS = ["overzicht", "kaart", "berichten", "forum"];
+  function showTab() {
+    const t = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "overzicht";
+    document.querySelectorAll(".grid>[data-tab]").forEach(c => c.classList.toggle("active", c.dataset.tab === t));
+    document.querySelectorAll(".tabbar a").forEach(a => { if (a.dataset.go === t) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+    if (matchMedia("(max-width:900px)").matches) window.scrollTo(0, 0);
+    if (t === "kaart" && window._icemap) setTimeout(fitIcemap, 50);
+  }
+  window.addEventListener("hashchange", showTab);
+  showTab();
+  function badges() {
+    if (!data) return;
+    const n1 = lastSeen ? allPosts().filter(p => p.time && p.time > lastSeen).length : 0;
+    const n2 = lastSeen ? ((data.forum || {}).posts || []).filter(p => p.time > lastSeen).length : 0;
+    for (const [id, n] of [["b-berichten", n1], ["b-forum", n2]]) { const b = $(id); b.hidden = !n; b.textContent = n > 99 ? "99+" : String(n); }
+    const M = $("mini"); M.replaceChildren();
+    const bs = ((data.buienradar || {}).stations || []).find(s => s.name === "De Bilt");
+    const t = window._hereT != null ? window._hereT : bs ? bs.temp : ((data.forecast || {}).current || {}).temperature_2m;
+    if (t != null) M.append(document.createTextNode(fmtT(t)), el("span", {text: data.ice ? data.ice.labels[data.ice.level] : ""}));
+  }
+
+  // ---------------- ijskaart
+  const HI = () => +prefs().hi || 8;   // eigen veiligheidsgrens (standaard 8 cm)
+  const LVL = cm => cm == null ? 0 : cm < 4.5 ? 1 : cm < HI() ? 2 : 3;
+  // melding bij nieuwe metingen binnen de straal rond 'mijn plek' (zolang de app open staat)
+  // tik op de melding opent de app op het juiste tabblad (standaard de ijskaart)
+  window.iceNotify = (title, body, tag, tab = "kaart") => {
+    const url = new URL("#" + tab, location.href.split("#")[0]).href;
+    const fallback = () => { const n = new Notification(title, {body, tag}); n.onclick = () => { window.focus(); location.hash = "#" + tab; n.close(); }; };
+    const show = () => navigator.serviceWorker && navigator.serviceWorker.ready
+      .then(r => r.showNotification(title, {body, tag, icon: "icon-192.png", badge: "icon-192.png", data: {ligt: true, url}}))
+      .catch(fallback);
+    if ("Notification" in window && Notification.permission === "granted") show();
+    const t = $("toast"); if (t) { t.textContent = `${title}: ${body}`; t.hidden = false; clearTimeout(t._h); t._h = setTimeout(() => t.hidden = true, 12000); }
+  };
+  function nearAlerts(pts) {
+    const P = prefs(), h = P.home;
+    if (!P.notifyNear || !h || !h.lat) return;
+    const R = +P.radius || 30, kmTo = (a, b) => { const r = Math.PI / 180, x = (b.lon - a.lon) * r * Math.cos((a.lat + b.lat) / 2 * r); return 6371 * Math.hypot(x, (b.lat - a.lat) * r); };
+    let seen; try { seen = JSON.parse(localStorage.getItem("seenNear") || "null"); } catch (e) { seen = null; }
+    const first = !seen; seen = seen || [];
+    const fresh = pts.filter(p => !seen.includes(p.id || p.place + "|" + p.time) && kmTo(h, p) <= R);
+    for (const p of first ? [] : fresh.slice(0, 3))
+      window.iceNotify(`Nieuwe ijsmeting bij ${p.place}`, `${(p.min + "").replace(".", ",")} cm gemeten, ${Math.round(kmTo(h, p))} km van ${h.name} (${p.source})`, "near-" + (p.id || p.place));
+    try { localStorage.setItem("seenNear", JSON.stringify([...seen, ...fresh.map(p => p.id || p.place + "|" + p.time)].slice(-300))); } catch (e) {}
+  }
+  const nl1 = v => v == null ? "–" : (+v).toLocaleString("nl-NL", {maximumFractionDigits: 1});
+  const ago2 = t => {
+    const h = (Date.now() - new Date(t)) / 3600e3;
+    return h < 1 ? Math.max(1, Math.round(h * 60)) + " min geleden" : h < 24 ? Math.round(h) + " uur geleden" : Math.round(h / 24) + " dag" + (h >= 36 ? "en" : "") + " geleden";
+  };
+  window.renderIcemap = () => renderMap();
+  function renderMap() {
+    const k = data && data.ijskaart;
+    window._icedata = data;
+    if (!k) return;
+    const pts = (k.points || []).slice().sort((a, b) => (b.morning_cm ?? b.cm) - (a.morning_cm ?? a.cm));
+    const tgtD = k.target ? new Date(k.target) : null;
+    const tgt = tgtD ? tgtD.toLocaleString("nl-NL", {...tz, weekday: "short"}) + " 9:00" : "morgen 9:00";
+    const nSt = new Set(pts.filter(p => p.station).map(p => p.station.name)).size;
+    $("mapmeta").textContent = `${pts.length} metingen` + (nSt ? ` · bijgesteld met ${nSt} weerstations` : "");
+    $("mapnote").textContent = `Prognose voor ${tgt}: vanaf de dunste gemeten waarde, met de temperatuur op die plek. Sinds de meting telt de gemeten temperatuur van het dichtstbijzijnde weerstation: een KNMI-station, of een amateurstation (WOW) binnen 12 km dat niet meer dan 4 graden van het KNMI afwijkt${k.wow_count ? ` (nu ${k.wow_count} goedgekeurd)` : ""}; daarna de modelverwachting, bijgesteld met het verschil tussen meting en model van dit moment. Sneeuw, wind, stroming en kwel tellen niet mee. Een plaatsnaam staat op het midden van die plaats.`;
+    const meas = p => p.min === p.max ? nl1(p.min) : nl1(p.min) + "–" + nl1(p.max);
+    const stLine = p => {
+      const s = p.station; if (!s) return null;
+      let t = `${s.amateur ? "Amateurstation " : ""}${s.name} (${s.km} km) meet ${nl1(s.temp)} °C`;
+      if (s.model != null && Math.abs(s.bias) >= 0.3) t += `, model ${nl1(s.model)} °C`;
+      const d = p.model_morning_cm != null ? +(p.morning_cm - p.model_morning_cm).toFixed(1) : 0;
+      if (Math.abs(d) >= 0.1) t += ` · prognose ${d > 0 ? "+" : "−"}${nl1(Math.abs(d))} cm bijgesteld`;
+      return t;
+    };
+    const popup = p => {
+      const d = document.createElement("div");
+      const when = new Date(p.time).toLocaleString("nl-NL", {...tz, weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
+      const u = safeUrl(p.url);
+      d.append(el("strong", {text: p.place}), el("div", {text: `Gemeten: ${meas(p)} cm (${when})`}),
+        p.morning_cm != null ? el("div", {text: `Prognose ${tgt}: ~${nl1(p.morning_cm)} cm`}) : null,
+        stLine(p) ? el("div", {cls: "pst", text: stLine(p)}) : null,
+        el("q", {text: p.quote}),
+        window.samenPopupExtras ? window.samenPopupExtras(p) : null,
+        u ? el("a", {href: u, target: "_blank", rel: "noopener", text: p.source + (p.who ? " · " + p.who : "")}) : el("span", {text: p.source}));
+      return d;
+    };
+    if (window.L) {
+      if (!window._icemap) {
+        window._icemap = L.map("icemap", {zoomSnap: 0.25, zoomDelta: 0.5});
+        window.iceHome(window._icemap);
+        // kaart kan in een verborgen tab zijn aangemaakt (hoogte 0): dan later alsnog op Nederland zetten
+        window._icefit = !$("icemap").offsetHeight;
+        window._icemap.on("dragstart", () => { window._icefit = false; });
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 15, attribution: "© OpenStreetMap"}).addTo(window._icemap);
+        window._icelayer = L.layerGroup().addTo(window._icemap);
+        window._groundlayer = L.layerGroup();
+        const GroundCtl = L.Control.extend({onAdd() {
+          const b = L.DomUtil.create("button", "groundbtn leaflet-bar");
+          b.type = "button"; b.textContent = "🌡 Grond 10 cm"; b.setAttribute("aria-pressed", "false");
+          L.DomEvent.disableClickPropagation(b);
+          b.onclick = () => {
+            const on = !window._icemap.hasLayer(window._groundlayer);
+            if (on) window._groundlayer.addTo(window._icemap); else window._icemap.removeLayer(window._groundlayer);
+            b.setAttribute("aria-pressed", String(on));
+          };
+          return b;
+        }});
+        new GroundCtl({position: "topright"}).addTo(window._icemap);
+      }
+      window._icelayer.clearLayers();
+      window._groundlayer.clearLayers();
+      for (const g of k.ground || []) {
+        const icon = L.divIcon({className: "", iconSize: null, iconAnchor: [14, 9],
+          html: `<div class="gpin ${g.ground < 0 ? "frost" : "thaw"}">${nl1(g.ground)}°</div>`});
+        L.marker([g.lat, g.lon], {icon, title: `${g.name}: ${nl1(g.ground)} °C op 10 cm, lucht ${nl1(g.temp)} °C`})
+          .bindPopup(() => el("div", {}, [el("strong", {text: g.name}), el("div", {text: `Grond (10 cm): ${nl1(g.ground)} °C`}),
+            el("div", {text: `Lucht (1,5 m): ${nl1(g.temp)} °C`}),
+            el("div", {cls: "pst", text: "KNMI, " + new Date(g.time).toLocaleTimeString("nl-NL", {...tz, hour: "2-digit", minute: "2-digit"})})]))
+          .addTo(window._groundlayer);
+      }
+      window._icemarkers = {};
+      for (const p of pts.slice().reverse()) {
+        const v = p.morning_cm ?? null;
+        const icon = L.divIcon({className: "", iconSize: null, iconAnchor: [28, 13],
+          html: `<div class="mpin"><b>${nl1(p.min)}</b><span class="lvl${LVL(v)}">${v == null ? "?" : nl1(v)}</span></div>`});
+        const m = L.marker([p.lat, p.lon], {icon, title: `${p.place}: ${meas(p)} cm gemeten, prognose ${v == null ? "onbekend" : nl1(v) + " cm"}`}).bindPopup(() => popup(p));
+        m.addTo(window._icelayer);
+        window._icemarkers[p.id || p.place + "|" + p.source] = m;
+      }
+    }
+    const list = $("mlist"); list.replaceChildren();
+    if (!pts.length) list.append(el("p", {cls: "muted", text: "Nog geen metingen gevonden in de afgelopen 3 dagen."}));
+    for (const p of pts) {
+      const v = p.morning_cm;
+      const row = el("button", {cls: "mrow", type: "button"}, [
+        el("div", {cls: "mvals"}, [
+          el("div", {cls: "mval meas"}, [document.createTextNode(meas(p)), el("small", {text: "gemeten"})]),
+          el("div", {cls: "mval lvl" + LVL(v)}, [document.createTextNode(v == null ? "–" : nl1(v)), el("small", {text: tgt})])]),
+        el("div", {}, [el("div", {cls: "mt", text: p.place}),
+          el("div", {cls: "ms", text: `${ago2(p.time)} · ${p.source}${p.who ? " (" + p.who + ")" : ""}`}),
+          stLine(p) ? el("div", {cls: "ms pst", text: stLine(p)}) : null]),
+        el("q", {text: p.quote})]);
+      row.onclick = () => {
+        const m = (window._icemarkers || {})[p.id || p.place + "|" + p.source];
+        if (m && window._icemap) { if (matchMedia("(max-width:1100px)").matches) $("icemap").scrollIntoView({behavior: "smooth"}); window._icemap.setView(m.getLatLng(), 11); m.openPopup(); }
+      };
+      list.append(row);
+    }
+    document.querySelectorAll(".hiv").forEach(n => n.textContent = String(HI()).replace(".", ","));
+    try { nearAlerts(pts); } catch (e) { console.error(e); }
+    window.dispatchEvent(new Event("icemap-rendered"));
+  }
+
+  const _render = render;
+  render = function () { _render(); badges(); try { renderMap(); } catch (e) { console.error(e); } };
+
+  // installeerbare app (PWA)
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+  let installEvt = null;
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; $("install").hidden = false; });
+  window.addEventListener("appinstalled", () => { $("install").hidden = true; });
+  // iPhone/iPad: Safari kent geen installatieknop, dus uitleg tonen
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  if (isIOS && !standalone) $("install").hidden = false;
+  $("install").addEventListener("click", async () => {
+    if (!installEvt) {
+      if (isIOS) alert("Installeren op iPhone:\n1. Open deze pagina in Safari\n2. Tik onderaan op Deel (vierkantje met pijl omhoog)\n3. Kies 'Zet op beginscherm' en tik op 'Voeg toe'");
+      return;
+    }
+    installEvt.prompt(); await installEvt.userChoice; installEvt = null; $("install").hidden = true;
+  });
+
+  // meldingen via OneSignal (webpush)
+  (async () => {
+    let cfg = {};
+    try { cfg = await (await fetch("config.json", {cache: "no-store"})).json(); } catch (e) {}
+    if (!cfg.onesignal_app_id || !("Notification" in window)) return;
+    const bell = $("bell");
+    const base = location.pathname.replace(/[^/]*$/, "");
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    const sdk = document.createElement("script");
+    sdk.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"; sdk.defer = true;
+    document.head.append(sdk);
+    OneSignalDeferred.push(async OneSignal => {
+      await OneSignal.init({appId: cfg.onesignal_app_id, serviceWorkerPath: base.slice(1) + "sw.js",
+                            serviceWorkerParam: {scope: base}, notifyButton: {enable: false}});
+      const sync = () => {
+        const on = OneSignal.Notifications.permission && OneSignal.User.PushSubscription.optedIn;
+        bell.hidden = false;
+        bell.textContent = on ? "🔔 Meldingen staan aan" : "🔔 Meldingen aan";
+        bell.setAttribute("aria-pressed", String(!!on));
+      };
+      bell.onclick = async () => {
+        try {
+          if (OneSignal.User.PushSubscription.optedIn) await OneSignal.User.PushSubscription.optOut();
+          else { await OneSignal.Notifications.requestPermission(); await OneSignal.User.PushSubscription.optIn(); }
+        } catch (e) {}
+        sync();
+      };
+      OneSignal.Notifications.addEventListener("permissionChange", sync);
+      OneSignal.User.PushSubscription.addEventListener("change", sync);
+      sync();
+    });
+  })();
+
+  window.addEventListener("leaflet-ready", () => { if (data) renderMap(); });
+  $("reload").onclick = load;
+  load().then(() => setTimeout(markSeen, 5000));
+  setInterval(load, 15 * 60 * 1000);
+  setInterval(() => { if (data) { renderFeed(); renderForum(); } }, 60 * 1000);
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" onload="window.dispatchEvent(new Event('leaflet-ready'))"></script>
+<script src="samen.js" defer></script>
+
+<script>
+// Delen met vrienden: deelmenu van de telefoon, anders link kopiëren.
+document.querySelectorAll("[data-share]").forEach(b => b.addEventListener("click", async () => {
+  const url = "https://is.gd/ligteralijs";
+  const data = {title: "Ligt er al ijs?", text: "Al het nieuws en de achtergrond rondom natuurijs op één plek ⛸️", url};
+  try { if (navigator.share) { await navigator.share(data); return; } }
+  catch (e) { if (e && e.name === "AbortError") return; }
+  try { await navigator.clipboard.writeText(`${data.text} ${url}`); }
+  catch (e) { window.prompt("Kopieer deze link:", url); return; }
+  const old = b.innerHTML; b.textContent = "✓ Link gekopieerd"; setTimeout(() => { b.innerHTML = old; }, 2000);
+}));
+</script>
+</body>
+</html>
