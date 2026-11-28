@@ -79,6 +79,7 @@ SINGLE = re.compile(NUM + UNIT, re.I)
 NOT_MEASURED = re.compile(
     r"minimaal|minstens|tenminste|ten minste|nodig|vuistregel|moet|veilig|draagt|dragen|verwacht|prognose|model|pluim|"
     r"zou|zal |kan er|kunnen|komt .*bij|erbij|groei(t|en)? .*(nog|tot)|bij komt|aangroeien|morgen|vannacht nog|"
+    r"vereist|verplicht|nog niet|niet de |te weinig|"
     r"neerslag|regen|sneeuw|hagel|elfstedentocht|toertocht|record|in 19\d\d|in 20[0-2]\d|vorig jaar|destijds", re.I)
 AFTER_SKIP = re.compile(r"\s*(?:(?:van|uit|vanaf) de (?:kant|wal|oever)|diep|onder|water|sneeuw|regen|neerslag|hoog)", re.I)
 ICE = re.compile(r"\bijs|ijsdikte|ijslaag|ijsvloer|dik\b|gemeten|meet\b", re.I)
@@ -475,17 +476,27 @@ def build(prev=None, dearend=None):
     for m in olds + found:
         if now - parse_iso(m["time"]) > dt.timedelta(hours=KEEP_HOURS) or parse_iso(m["time"]) > now + dt.timedelta(hours=1):
             continue
-        key = m.get("id") or f'{m["url"]}|{m["place"]}|{m["min"]}|{m["max"]}'
+        # nieuwsberichten van eerdere runs opnieuw door het filter halen (vuistregels als "vereiste 3 cm" tellen niet)
+        if m.get("kind") == "nieuws" and not measurements_in(m.get("quote") or ""):
+            continue
+        # hetzelfde citaat over dezelfde plek telt één keer, ook als het bericht onder een nieuwe link of bij
+        # een andere omroep opnieuw verschijnt; de vroegste tijd blijft staan (dan is er gemeten)
+        quote = re.sub(r"\W+", " ", (m.get("quote") or "").lower()).strip()
+        key = m.get("id") or (f'{m["place"].lower()}|{quote}|{m["min"]}|{m["max"]}' if quote else f'{m["url"]}|{m["place"]}|{m["min"]}|{m["max"]}')
+        if key in allm and allm[key]["time"] <= m["time"]:
+            continue
         allm[key] = m
     ms = sorted(allm.values(), key=lambda m: m["time"], reverse=True)
     # per plek alleen de nieuwste meting op de kaart, de rest als geschiedenis
     points = {}
     for m in ms:
-        k = m.get("id") or f'{m["place"].lower()}|{m["source"]}'
+        # één punt per plek, ongeacht de bron; eigen app-meldingen blijven losse punten
+        k = m.get("id") or m["place"].strip().lower()
         if k not in points:
             points[k] = dict(m, history=[])
         elif len(points[k]["history"]) < 5:
-            points[k]["history"].append({"cm": m["cm"], "min": m["min"], "max": m["max"], "time": m["time"], "url": m["url"]})
+            points[k]["history"].append({"cm": m["cm"], "min": m["min"], "max": m["max"], "time": m["time"], "url": m["url"],
+                                         "source": m["source"]})
     points = list(points.values())
     tgt = target_time(now)
     try:
